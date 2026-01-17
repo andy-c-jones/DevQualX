@@ -2,6 +2,7 @@
     <Folder Name="/src/">
         <Project Path="src/DevQualX.Application/DevQualX.Application.csproj" />
         <Project Path="src/DevQualX.Data/DevQualX.Data.csproj" />
+        <Project Path="src/DevQualX.Database/DevQualX.Database.sqlproj" />
         <Project Path="src/DevQualX.Domain/DevQualX.Domain.csproj" />
         <Project Path="src/DevQualX.Infrastructure/DevQualX.Infrastructure.csproj" />
     </Folder>

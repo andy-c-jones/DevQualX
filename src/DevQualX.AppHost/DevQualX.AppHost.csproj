@@ -13,4 +13,16 @@
     <ProjectReference Include="..\DevQualX.Web\DevQualX.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DevQualX.Database\DevQualX.Database.sqlproj">
+      <IsAspireProjectResource>true</IsAspireProjectResource>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.1.0" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlDatabaseProjects" Version="13.1.1" />
+  </ItemGroup>
+
 </Project>

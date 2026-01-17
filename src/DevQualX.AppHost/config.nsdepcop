@@ -7,4 +7,15 @@
     
     <!-- Microsoft Extensions -->
     <Allowed From="DevQualX.AppHost" To="Microsoft.Extensions.*" />
+    
+    <!-- SQL Database Project extensions -->
+    <Allowed From="DevQualX.AppHost" To="CommunityToolkit.Aspire.Hosting.SqlDatabaseProjects" />
+    <Allowed From="&lt;global namespace&gt;" To="Microsoft.SqlServer.Dac" />
+    
+    <!-- Allow Azure assemblies for SQL Server integration -->
+    <AllowedAssembly From="DevQualX.AppHost" To="Azure.Core" />
+    <AllowedAssembly From="DevQualX.AppHost" To="Azure.Identity" />
+    <AllowedAssembly From="DevQualX.AppHost" To="Azure.Storage.Blobs" />
+    <AllowedAssembly From="DevQualX.AppHost" To="Azure.Storage.Common" />
+    <AllowedAssembly From="DevQualX.AppHost" To="CommunityToolkit.Aspire.Hosting.SqlDatabaseProjects" />
 </NsDepCopConfig>
