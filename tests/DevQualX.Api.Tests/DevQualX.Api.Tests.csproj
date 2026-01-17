@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DevQualX.ApiService\DevQualX.ApiService.csproj" />
+    <ProjectReference Include="..\..\src\DevQualX.Api\DevQualX.Api.csproj" />
     <ProjectReference Include="..\..\src\DevQualX.Application\DevQualX.Application.csproj" />
     <ProjectReference Include="..\..\src\DevQualX.Domain\DevQualX.Domain.csproj" />
   </ItemGroup>

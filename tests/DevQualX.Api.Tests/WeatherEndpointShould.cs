@@ -3,7 +3,7 @@ using DevQualX.Domain.Models;
 using DevQualX.Domain.Services;
 using System.Net.Http.Json;
 
-namespace DevQualX.ApiService.Tests;
+namespace DevQualX.Api.Tests;
 
 /// <summary>
 /// Unit tests for the weather forecast endpoint logic.

@@ -17,7 +17,7 @@ builder.AddSqlProject<Projects.DevQualX_Database>("database-project")
         options.BlockOnPossibleDataLoss = false; // Local dev only - change for production
     });
 
-var apiService = builder.AddProject<Projects.DevQualX_ApiService>("apiservice")
+var apiService = builder.AddProject<Projects.DevQualX_Api>("apiservice")
     .WithHttpHealthCheck("/health")
     .WithReference(database)
     .WaitFor(database);
@@ -25,8 +25,7 @@ var apiService = builder.AddProject<Projects.DevQualX_ApiService>("apiservice")
 builder.AddProject<Projects.DevQualX_Web>("webfrontend")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
-    .WithReference(apiService)
     .WithReference(database)
-    .WaitFor(apiService);
+    .WaitFor(database);
 
 builder.Build().Run();

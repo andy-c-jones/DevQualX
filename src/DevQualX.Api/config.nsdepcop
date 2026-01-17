@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <NsDepCopConfig InheritanceDepth="2" IsEnabled="true">
-    <!-- ApiService: REST API backend -->
+    <!-- Api: REST API backend -->
     <!-- Can reference Application, Data, Infrastructure, and ServiceDefaults -->
     
     <!-- ASP.NET Core namespaces -->
-    <Allowed From="DevQualX.ApiService" To="Microsoft.AspNetCore.*" />
+    <Allowed From="DevQualX.Api" To="Microsoft.AspNetCore.*" />
     
     <!-- OpenAPI/Swagger -->
-    <Allowed From="DevQualX.ApiService" To="Scalar.AspNetCore" />
+    <Allowed From="DevQualX.Api" To="Scalar.AspNetCore" />
     
     <!-- Allow referencing application and domain layers -->
-    <Allowed From="DevQualX.ApiService" To="DevQualX.Application.*" />
-    <Allowed From="DevQualX.ApiService" To="DevQualX.Domain.*" />
+    <Allowed From="DevQualX.Api" To="DevQualX.Application.*" />
+    <Allowed From="DevQualX.Api" To="DevQualX.Domain.*" />
 </NsDepCopConfig>

@@ -6,7 +6,7 @@ This document provides essential information for AI coding agents working in the
 
 DevQualX is a .NET Aspire application built with:
 - .NET 10.0 (net10.0)
-- ASP.NET Core Web API (ApiService)
+- ASP.NET Core Web API (Api)
 - Blazor Server Web UI (Web)
 - .NET Aspire AppHost for orchestration
 - Implicit usings and nullable reference types enabled
@@ -15,7 +15,7 @@ DevQualX is a .NET Aspire application built with:
 
 ```
 src/
-├── DevQualX.ApiService/       # REST API backend service
+├── DevQualX.Api/       # REST API backend service
 ├── DevQualX.Web/              # Blazor Server frontend
 │   └── Components/            # Razor components
 │       ├── Pages/             # Routable page components
@@ -43,7 +43,7 @@ DevQualX follows a clean architecture pattern with Interaction-Driven Design pri
 
 **Layer Dependencies (dependencies flow inward):**
 ```
-ApiService/Web → Application → Domain ← Data
+Api/Web → Application → Domain ← Data
                                     ← Infrastructure
 ```
 
@@ -124,7 +124,7 @@ app.MapGet("/weatherforecast", async (IGetWeatherForecast getWeatherForecast) =>
 **Service Registration:**
 
 ```csharp
-// In Program.cs for both ApiService and Web
+// In Program.cs for both Api and Web
 builder.Services.AddApplicationServices();  // Registers application services (scoped) with their interfaces
 builder.Services.AddDomainServices();       // Registers domain services
 
@@ -150,7 +150,7 @@ DevQualX uses **NsDepCop 2.7.0** to enforce clean architecture rules at build ti
    - ✅ Application → Domain (allowed)
    - ✅ Data → Domain (allowed)
    - ✅ Infrastructure → Domain (allowed)
-   - ✅ ApiService/Web → Application + Domain (allowed transitively)
+   - ✅ Api/Web → Application + Domain (allowed transitively)
    - ❌ Application → Data (disallowed)
    - ❌ Application → Infrastructure (disallowed)
    - ❌ Data ↔ Infrastructure (disallowed)
@@ -241,7 +241,7 @@ else
 dotnet build DevQualX.slnx
 
 # Build specific project
-dotnet build src/DevQualX.ApiService/DevQualX.ApiService.csproj
+dotnet build src/DevQualX.Api/DevQualX.Api.csproj
 dotnet build src/DevQualX.Web/DevQualX.Web.csproj
 
 # Clean and rebuild
@@ -254,7 +254,7 @@ dotnet clean && dotnet build
 dotnet run --project src/DevQualX.AppHost/DevQualX.AppHost.csproj
 
 # Run individual services (for development)
-dotnet run --project src/DevQualX.ApiService/DevQualX.ApiService.csproj
+dotnet run --project src/DevQualX.Api/DevQualX.Api.csproj
 dotnet run --project src/DevQualX.Web/DevQualX.Web.csproj
 ```
 
@@ -410,7 +410,7 @@ tests/
 ├── DevQualX.Application.Tests/    # Unit tests for application services (IDD)
 ├── DevQualX.Data.Tests/           # Integration tests with SQL Server
 ├── DevQualX.Infrastructure.Tests/ # Unit tests for third-party adapters
-├── DevQualX.ApiService.Tests/     # Unit + minimal service tests for API
+├── DevQualX.Api.Tests/     # Unit + minimal service tests for API
 └── DevQualX.Web.Tests/            # bUnit tests for Blazor components
 ```
 
@@ -498,12 +498,12 @@ public class GetWeatherForecastShould
 }
 ```
 
-**2. Service Tests** (ApiService, Web - MINIMAL USE ONLY)
+**2. Service Tests** (Api, Web - MINIMAL USE ONLY)
 - Test HTTP pipeline with real dependency injection using `WebApplicationFactory<Program>`
 - Validate DI configuration and endpoint routing
 - **Much slower than unit tests** - use sparingly (only for happy path DI validation)
 - Called "service tests" not "integration tests" (no external processes like databases)
-- Located in: `DevQualX.ApiService.Tests`, `DevQualX.Web.Tests`
+- Located in: `DevQualX.Api.Tests`, `DevQualX.Web.Tests`
 
 **Example:**
 ```csharp
@@ -718,7 +718,7 @@ All test projects should include these settings in their `.csproj`:
 - FakeItEasy: 8.3.0
 - FakeItEasy.Analyzer.CSharp: 6.1.1
 - bUnit: 1.35.3 (Web.Tests only)
-- Microsoft.AspNetCore.Mvc.Testing: 10.0.1 (ApiService.Tests only)
+- Microsoft.AspNetCore.Mvc.Testing: 10.0.1 (Api.Tests only)
 - Dapper: 2.1.35 (Data.Tests only)
 - Microsoft.Data.SqlClient: 5.2.2 (Data.Tests only)
 

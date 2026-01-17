@@ -35,9 +35,9 @@
     <Allowed From="&lt;global namespace&gt;" To="Aspire.*" />
     <Allowed From="&lt;global namespace&gt;" To="Projects" />
     
-    <!-- ApiService can reference Application and its children -->
-    <Allowed From="DevQualX.ApiService" To="DevQualX.Application.*" />
-    <Allowed From="DevQualX.ApiService" To="DevQualX.Domain.*" />
+    <!-- Api can reference Application and its children -->
+    <Allowed From="DevQualX.Api" To="DevQualX.Application.*" />
+    <Allowed From="DevQualX.Api" To="DevQualX.Domain.*" />
     
     <!-- Web can reference Application and its children -->
     <Allowed From="DevQualX.Web" To="DevQualX.Application.*" />
@@ -99,12 +99,12 @@
     <!-- Infrastructure can reference Domain -->
     <AllowedAssembly From="DevQualX.Infrastructure" To="DevQualX.Domain" />
     
-    <!-- ApiService can reference Application (and transitively Domain) -->
-    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.Application" />
-    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.Domain" />
-    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.Data" />
-    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.Infrastructure" />
-    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.ServiceDefaults" />
+    <!-- Api can reference Application (and transitively Domain) -->
+    <AllowedAssembly From="DevQualX.Api" To="DevQualX.Application" />
+    <AllowedAssembly From="DevQualX.Api" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.Api" To="DevQualX.Data" />
+    <AllowedAssembly From="DevQualX.Api" To="DevQualX.Infrastructure" />
+    <AllowedAssembly From="DevQualX.Api" To="DevQualX.ServiceDefaults" />
     
     <!-- Web can reference Application (and transitively Domain) -->
     <AllowedAssembly From="DevQualX.Web" To="DevQualX.Application" />

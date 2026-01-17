@@ -11,10 +11,10 @@
         <Project Path="tests/DevQualX.Application.Tests/DevQualX.Application.Tests.csproj" />
         <Project Path="tests/DevQualX.Data.Tests/DevQualX.Data.Tests.csproj" />
         <Project Path="tests/DevQualX.Infrastructure.Tests/DevQualX.Infrastructure.Tests.csproj" />
-        <Project Path="tests/DevQualX.ApiService.Tests/DevQualX.ApiService.Tests.csproj" />
+        <Project Path="tests/DevQualX.Api.Tests/DevQualX.Api.Tests.csproj" />
         <Project Path="tests/DevQualX.Web.Tests/DevQualX.Web.Tests.csproj" />
     </Folder>
-    <Project Path="src/DevQualX.ApiService/DevQualX.ApiService.csproj" />
+    <Project Path="src/DevQualX.Api/DevQualX.Api.csproj" />
     <Project Path="src/DevQualX.AppHost/DevQualX.AppHost.csproj" />
     <Project Path="src/DevQualX.ServiceDefaults/DevQualX.ServiceDefaults.csproj" />
     <Project Path="src/DevQualX.Web/DevQualX.Web.csproj" />

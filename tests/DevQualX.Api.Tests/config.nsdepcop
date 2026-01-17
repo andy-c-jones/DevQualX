@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- Api.Tests can reference Api, Application, and Domain -->
+    <!-- Test projects should not reference other test projects -->
+    
+    <!-- Allow test framework assemblies -->
+    <AllowedAssembly From="DevQualX.Api.Tests" To="TUnit" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="TUnit.*" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="FakeItEasy" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="Castle.Core" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="testhost" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="EnumerableAsyncProcessor" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="DevQualX.Api" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="DevQualX.Application" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="DevQualX.Data" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="DevQualX.Infrastructure" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="DevQualX.ServiceDefaults" />
+    
+    <!-- Allow test framework namespaces -->
+    <Allowed From="DevQualX.Api.Tests.*" To="TUnit.*" />
+    <Allowed From="DevQualX.Api.Tests.*" To="FakeItEasy.*" />
+    <Allowed From="DevQualX.Api.Tests" To="DevQualX.Api" />
+    <Allowed From="DevQualX.Api.Tests" To="DevQualX.Application.*" />
+    <Allowed From="DevQualX.Api.Tests" To="DevQualX.Domain.*" />
+</NsDepCopConfig>

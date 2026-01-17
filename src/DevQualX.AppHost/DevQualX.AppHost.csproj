@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DevQualX.ApiService\DevQualX.ApiService.csproj" />
+    <ProjectReference Include="..\DevQualX.Api\DevQualX.Api.csproj" />
     <ProjectReference Include="..\DevQualX.Web\DevQualX.Web.csproj" />
   </ItemGroup>
 
