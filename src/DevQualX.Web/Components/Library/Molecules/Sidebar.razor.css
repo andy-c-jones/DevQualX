@@ -1,10 +1,11 @@
 /* Sidebar container */
 .sidebar {
     position: relative;
-    background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-900) 100%);
+    background: #f7f7f7;
     height: 100vh;
     display: flex;
     flex-direction: column;
+    border-right: 1px solid #d6d5d5;
 }
 
 /* Mobile hamburger button */
@@ -52,7 +53,14 @@
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 999;
-    animation: fadeIn var(--transition-base);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-base);
+}
+
+.sidebar__overlay--visible {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* Sidebar content */
@@ -62,7 +70,7 @@
     left: -280px;
     width: 280px;
     height: 100vh;
-    background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-900) 100%);
+    background: #f7f7f7;
     display: flex;
     flex-direction: column;
     z-index: 1000;
@@ -81,14 +89,14 @@
     gap: var(--spacing-3);
     padding: var(--spacing-4);
     height: 3.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid #d6d5d5;
     text-decoration: none;
-    color: var(--color-white);
+    color: var(--color-gray-900);
     transition: background-color var(--transition-base);
 }
 
 .sidebar__header:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--color-gray-100);
 }
 
 .sidebar__logo {
@@ -98,7 +106,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--color-primary);
     border-radius: var(--radius-md);
 }
 
@@ -111,7 +119,7 @@
 .sidebar__title {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-white);
+    color: var(--color-gray-900);
 }
 
 /* Navigation */
@@ -131,12 +139,12 @@
 }
 
 .sidebar__nav::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: var(--color-gray-300);
     border-radius: var(--radius-full);
 }
 
 .sidebar__nav::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: var(--color-gray-400);
 }
 
 /* Nav item (leaf) */
@@ -150,7 +158,7 @@
     gap: var(--spacing-3);
     padding: var(--spacing-2) var(--spacing-3);
     border-radius: var(--radius-md);
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-gray-700);
     text-decoration: none;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
@@ -159,14 +167,14 @@
 }
 
 .sidebar__nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--color-white);
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-900);
 }
 
 /* Active page (current page) */
 .sidebar__nav-item--active .sidebar__nav-link {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: var(--color-white);
+    background-color: var(--color-primary-50);
+    color: var(--color-primary);
     font-weight: var(--font-weight-semibold);
 }
 
@@ -184,28 +192,19 @@
     border: none;
     border-radius: var(--radius-md);
     background: transparent;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-gray-600);
     text-align: left;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: default;
     transition: all var(--transition-base);
-}
-
-.sidebar__nav-group-header:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--color-white);
-}
-
-.sidebar__nav-group-header:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.5);
-    outline-offset: 2px;
 }
 
 /* Active section (contains current page) */
 .sidebar__nav-group--active > .sidebar__nav-group-header {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: var(--color-white);
+    color: var(--color-primary);
 }
 
 /* Nav icon */
@@ -218,15 +217,6 @@
 /* Nav label */
 .sidebar__nav-label {
     flex: 1;
-}
-
-/* Chevron */
-.sidebar__nav-chevron {
-    width: 1rem;
-    height: 1rem;
-    margin-left: auto;
-    flex-shrink: 0;
-    transition: transform var(--transition-base);
 }
 
 /* Children container */
@@ -267,11 +257,12 @@
 /* Dark mode support (using theme switcher) */
 @media (prefers-color-scheme: dark) {
     .sidebar {
-        background: linear-gradient(180deg, var(--color-primary-800) 0%, var(--color-gray-950) 100%);
+        background: var(--color-gray-900);
+        border-right-color: var(--color-gray-800);
     }
     
     .sidebar__content {
-        background: linear-gradient(180deg, var(--color-primary-800) 0%, var(--color-gray-950) 100%);
+        background: var(--color-gray-900);
     }
     
     .sidebar__hamburger {
@@ -283,6 +274,49 @@
     .sidebar__hamburger:hover {
         background-color: var(--color-gray-750);
         color: var(--color-gray-100);
+    }
+    
+    .sidebar__header {
+        border-bottom-color: var(--color-gray-800);
+        color: var(--color-gray-100);
+    }
+    
+    .sidebar__header:hover {
+        background-color: var(--color-gray-800);
+    }
+    
+    .sidebar__title {
+        color: var(--color-gray-100);
+    }
+    
+    .sidebar__nav-link {
+        color: var(--color-gray-300);
+    }
+    
+    .sidebar__nav-link:hover {
+        background-color: var(--color-gray-800);
+        color: var(--color-gray-100);
+    }
+    
+    .sidebar__nav-item--active .sidebar__nav-link {
+        background-color: var(--color-primary-900);
+        color: var(--color-primary-200);
+    }
+    
+    .sidebar__nav-group-header {
+        color: var(--color-gray-500);
+    }
+    
+    .sidebar__nav-group--active > .sidebar__nav-group-header {
+        color: var(--color-primary-300);
+    }
+    
+    .sidebar__nav::-webkit-scrollbar-thumb {
+        background-color: var(--color-gray-700);
+    }
+    
+    .sidebar__nav::-webkit-scrollbar-thumb:hover {
+        background-color: var(--color-gray-600);
     }
 }
 

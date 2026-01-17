@@ -17,13 +17,6 @@ public static class NavigationConfig
         {
             new NavItem
             {
-                Label = "Home",
-                Href = "",
-                Icon = HeroIcon.Home,
-                MatchExact = true
-            },
-            new NavItem
-            {
                 Label = "Weather",
                 Href = "weather",
                 Icon = HeroIcon.Calendar

@@ -17,33 +17,24 @@
 }
 else if (Item.Children?.Any() == true)
 {
-    @* Parent item with children *@
+    @* Parent item with children - always expanded *@
     <div class="sidebar__nav-group @(IsCurrentSection() ? "sidebar__nav-group--active" : "")">
-        <button 
-            type="button" 
-            class="sidebar__nav-group-header"
-            @onclick="ToggleExpanded"
-            aria-expanded="@IsExpanded.ToString().ToLowerInvariant()">
+        <div class="sidebar__nav-group-header">
             @if (Item.Icon.HasValue)
             {
                 <Icon Name="@Item.Icon.Value" Class="sidebar__nav-icon" />
             }
             <span class="sidebar__nav-label">@Item.Label</span>
-            <Icon Name="@(IsExpanded ? HeroIcon.ChevronDown : HeroIcon.ChevronRight)" Class="sidebar__nav-chevron" />
-        </button>
+        </div>
         
-        @if (IsExpanded)
-        {
-            <div class="sidebar__nav-children">
-                @foreach (var child in Item.Children)
-                {
-                    <SidebarNavItem 
-                        Item="@child" 
-                        CurrentPath="@CurrentPath" 
-                        OnItemClick="OnItemClick" />
-                }
-            </div>
-        }
+        <div class="sidebar__nav-children">
+            @foreach (var child in Item.Children)
+            {
+                <SidebarNavItem 
+                    Item="@child" 
+                    CurrentPath="@CurrentPath" />
+            }
+        </div>
     </div>
 }
 
@@ -53,33 +44,6 @@ else if (Item.Children?.Any() == true)
     
     [Parameter]
     public string CurrentPath { get; set; } = string.Empty;
-    
-    [Parameter]
-    public EventCallback OnItemClick { get; set; }
-    
-    private bool _isExpanded;
-    
-    private bool IsExpanded
-    {
-        get => _isExpanded;
-        set
-        {
-            if (_isExpanded != value)
-            {
-                _isExpanded = value;
-                StateHasChanged();
-            }
-        }
-    }
-    
-    protected override void OnParametersSet()
-    {
-        // Auto-expand if current path matches this item or any child
-        if (Item.Children?.Any() == true)
-        {
-            _isExpanded = IsPathActiveInChildren(Item, CurrentPath);
-        }
-    }
     
     private bool IsPathActiveInChildren(NavItem item, string currentPath)
     {
@@ -116,10 +80,5 @@ else if (Item.Children?.Any() == true)
     {
         if (Item.Children?.Any() != true) return false;
         return IsPathActiveInChildren(Item, CurrentPath);
-    }
-    
-    private async Task ToggleExpanded()
-    {
-        IsExpanded = !IsExpanded;
     }
 }
