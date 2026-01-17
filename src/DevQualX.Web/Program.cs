@@ -10,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
+// Add Azure clients with OpenTelemetry
+builder.AddAzureBlobServiceClient("blobs");
+builder.AddAzureServiceBusClient("messaging");
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

@@ -1,0 +1,125 @@
+@namespace DevQualX.Web.Components.Library.Molecules
+@using DevQualX.Web.Components.Library.Atoms
+@using Microsoft.AspNetCore.Components.Routing
+
+@if (Item.Href != null && Item.Children?.Any() != true)
+{
+    @* Leaf item with link *@
+    <div class="sidebar__nav-item @(IsCurrentPage() ? "sidebar__nav-item--active" : "")">
+        <NavLink href="@Item.Href" class="sidebar__nav-link" Match="@(Item.MatchExact ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+            @if (Item.Icon.HasValue)
+            {
+                <Icon Name="@Item.Icon.Value" Class="sidebar__nav-icon" />
+            }
+            <span class="sidebar__nav-label">@Item.Label</span>
+        </NavLink>
+    </div>
+}
+else if (Item.Children?.Any() == true)
+{
+    @* Parent item with children *@
+    <div class="sidebar__nav-group @(IsCurrentSection() ? "sidebar__nav-group--active" : "")">
+        <button 
+            type="button" 
+            class="sidebar__nav-group-header"
+            @onclick="ToggleExpanded"
+            aria-expanded="@IsExpanded.ToString().ToLowerInvariant()">
+            @if (Item.Icon.HasValue)
+            {
+                <Icon Name="@Item.Icon.Value" Class="sidebar__nav-icon" />
+            }
+            <span class="sidebar__nav-label">@Item.Label</span>
+            <Icon Name="@(IsExpanded ? HeroIcon.ChevronDown : HeroIcon.ChevronRight)" Class="sidebar__nav-chevron" />
+        </button>
+        
+        @if (IsExpanded)
+        {
+            <div class="sidebar__nav-children">
+                @foreach (var child in Item.Children)
+                {
+                    <SidebarNavItem 
+                        Item="@child" 
+                        CurrentPath="@CurrentPath" 
+                        OnItemClick="OnItemClick" />
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required NavItem Item { get; set; }
+    
+    [Parameter]
+    public string CurrentPath { get; set; } = string.Empty;
+    
+    [Parameter]
+    public EventCallback OnItemClick { get; set; }
+    
+    private bool _isExpanded;
+    
+    private bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded != value)
+            {
+                _isExpanded = value;
+                StateHasChanged();
+            }
+        }
+    }
+    
+    protected override void OnParametersSet()
+    {
+        // Auto-expand if current path matches this item or any child
+        if (Item.Children?.Any() == true)
+        {
+            _isExpanded = IsPathActiveInChildren(Item, CurrentPath);
+        }
+    }
+    
+    private bool IsPathActiveInChildren(NavItem item, string currentPath)
+    {
+        if (item.Href != null && IsPathActive(item.Href, item.MatchExact, currentPath))
+        {
+            return true;
+        }
+        
+        if (item.Children?.Any() == true)
+        {
+            return item.Children.Any(child => IsPathActiveInChildren(child, currentPath));
+        }
+        
+        return false;
+    }
+    
+    private bool IsPathActive(string href, bool matchExact, string currentPath)
+    {
+        if (matchExact)
+        {
+            return currentPath == href || currentPath == $"{href}/";
+        }
+        
+        return currentPath.StartsWith(href);
+    }
+    
+    private bool IsCurrentPage()
+    {
+        if (Item.Href == null) return false;
+        return IsPathActive(Item.Href, Item.MatchExact, CurrentPath);
+    }
+    
+    private bool IsCurrentSection()
+    {
+        if (Item.Children?.Any() != true) return false;
+        return IsPathActiveInChildren(Item, CurrentPath);
+    }
+    
+    private async Task ToggleExpanded()
+    {
+        IsExpanded = !IsExpanded;
+    }
+}

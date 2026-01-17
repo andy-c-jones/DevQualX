@@ -57,9 +57,10 @@
     <Allowed From="DevQualX.Web" To="DevQualX.Infrastructure" />
     <Allowed From="DevQualX.Web" To="DevQualX.Web.*" />
     
-    <!-- Worker can reference Application and Infrastructure -->
+    <!-- Worker can reference Application, Data, and Infrastructure -->
     <Allowed From="DevQualX.Worker" To="DevQualX.Application.*" />
     <Allowed From="DevQualX.Worker" To="DevQualX.Domain.*" />
+    <Allowed From="DevQualX.Worker" To="DevQualX.Data" />
     <Allowed From="DevQualX.Worker" To="DevQualX.Infrastructure" />
     
     <!-- ========================================== -->
@@ -137,7 +138,8 @@
     <AllowedAssembly From="DevQualX.Api" To="Dapper" />
     <AllowedAssembly From="DevQualX.Api" To="Octokit" />
     
-    <!-- Worker has transitive dependencies through Infrastructure (Octokit) -->
+    <!-- Worker has transitive dependencies through Data (Dapper) and Infrastructure (Octokit) -->
+    <AllowedAssembly From="DevQualX.Worker" To="Dapper" />
     <AllowedAssembly From="DevQualX.Worker" To="Octokit" />
     
     <!-- Allow Azure SDK assemblies -->
@@ -170,9 +172,10 @@
     <AllowedAssembly From="DevQualX.Web" To="Dapper" />
     <AllowedAssembly From="DevQualX.Web" To="Octokit" />
     
-    <!-- Worker can reference Application, Domain, Infrastructure -->
+    <!-- Worker can reference Application, Domain, Data, Infrastructure -->
     <AllowedAssembly From="DevQualX.Worker" To="DevQualX.Application" />
     <AllowedAssembly From="DevQualX.Worker" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.Worker" To="DevQualX.Data" />
     <AllowedAssembly From="DevQualX.Worker" To="DevQualX.Infrastructure" />
     <AllowedAssembly From="DevQualX.Worker" To="DevQualX.ServiceDefaults" />
     

@@ -1,10 +1,9 @@
 @inherits LayoutComponentBase
 @using DevQualX.Web.Components.Library.Molecules
+@using DevQualX.Web.Configuration
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+    <Sidebar NavItems="@NavigationConfig.GetNavItems()" Title="DevQualX" />
 
     <main>
         <div class="top-row px-4">

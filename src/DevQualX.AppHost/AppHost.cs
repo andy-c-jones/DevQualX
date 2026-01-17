@@ -45,7 +45,11 @@ builder.AddProject<Projects.DevQualX_Web>("webfrontend")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
     .WithReference(database)
-    .WaitFor(database);
+    .WithReference(blobs)
+    .WithReference(messaging)
+    .WaitFor(database)
+    .WaitFor(storage)
+    .WaitFor(messaging);
 
 // Configure Worker service
 builder.AddProject<Projects.DevQualX_Worker>("worker")

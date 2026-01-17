@@ -7,7 +7,7 @@ namespace DevQualX.Worker;
 
 public class ReportProcessorService(
     ServiceBusClient serviceBusClient,
-    IProcessReport processReport,
+    IServiceScopeFactory serviceScopeFactory,
     ILogger<ReportProcessorService> logger) : BackgroundService
 {
     private const string QueueName = "reports";
@@ -60,6 +60,10 @@ public class ReportProcessorService(
             logger.LogInformation("Processing report: {Organisation}/{Project}/{FileName} (Attempt {Attempt})", 
                 reportMetadata.Organisation, reportMetadata.Project, reportMetadata.FileName, attemptCount);
 
+            // Create a scope to resolve scoped services
+            using var scope = serviceScopeFactory.CreateScope();
+            var processReport = scope.ServiceProvider.GetRequiredService<IProcessReport>();
+            
             var result = await processReport.ExecuteAsync(reportMetadata, args.CancellationToken);
 
             if (result.Success)
