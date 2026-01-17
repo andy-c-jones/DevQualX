@@ -1,14 +1,14 @@
-﻿@page "/weather"
-@attribute [StreamRendering(true)]
-@attribute [OutputCache(Duration = 5)]
-
-@inject WeatherApiClient WeatherApi
+@page "/weather"
+@attribute [StreamRendering]
+@using DevQualX.Application.Weather
+@using DevQualX.Domain.Models
+@inject GetWeatherForecast GetWeatherForecastService
 
 <PageTitle>Weather</PageTitle>
 
 <h1>Weather</h1>
 
-<p>This component demonstrates showing data loaded from a backend API service.</p>
+<p>This component demonstrates showing data.</p>
 
 @if (forecasts == null)
 {
@@ -44,6 +44,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await WeatherApi.GetWeatherAsync();
+        // Simulate asynchronous loading to demonstrate streaming rendering
+        await Task.Delay(500);
+
+        forecasts = await GetWeatherForecastService.ExecuteAsync(maxItems: 5);
     }
 }
