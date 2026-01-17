@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>8e4c4784-3d00-47f2-b5cd-ee7698968fd9</UserSecretsId>
+    <NoWarn>ASPIRE004</NoWarn>  <!-- SQL projects are not executable, this is expected -->
   </PropertyGroup>
 
   <ItemGroup>
