@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2" IsEnabled="true">
+    <!-- AppHost: Aspire orchestration -->
+    
+    <!-- Aspire hosting -->
+    <Allowed From="DevQualX.AppHost" To="Aspire.*" />
+    
+    <!-- Microsoft Extensions -->
+    <Allowed From="DevQualX.AppHost" To="Microsoft.Extensions.*" />
+</NsDepCopConfig>

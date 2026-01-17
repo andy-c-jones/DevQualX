@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2" IsEnabled="true">
+    <!-- Infrastructure Layer: Third-party adapters -->
+    <!-- Can only reference Domain layer (enforced in master config) -->
+</NsDepCopConfig>

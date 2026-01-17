@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig IsEnabled="true" 
+                ChildCanDependOnParentImplicitly="true"
+                CheckAssemblyDependencies="true">
+    
+    <!-- ========================================== -->
+    <!-- MASTER CONFIG: Common rules for all projects -->
+    <!-- ========================================== -->
+    
+    <!-- System namespaces allowed everywhere -->
+    <Allowed From="*" To="System.*" />
+    <Allowed From="*" To="Microsoft.Extensions.*" />
+    <Allowed From="*" To="Microsoft.AspNetCore.*" />
+    
+    <!-- ========================================== -->
+    <!-- DOMAIN LAYER INTERNAL RULES -->
+    <!-- ========================================== -->
+    
+    <!-- Domain.Services can reference Domain.Models -->
+    <Allowed From="DevQualX.Domain.Services" To="DevQualX.Domain.Models" />
+    
+    <!-- ========================================== -->
+    <!-- APPLICATION LAYER INTERNAL RULES -->
+    <!-- ========================================== -->
+    
+    <!-- Application root can reference Application feature namespaces (for DI registration) -->
+    <Allowed From="DevQualX.Application" To="DevQualX.Application.*" />
+    
+    <!-- ========================================== -->
+    <!-- API SERVICE & WEB LAYER RULES -->
+    <!-- ========================================== -->
+    
+    <!-- Global namespace (top-level statements in Program.cs) can reference DevQualX namespaces -->
+    <Allowed From="&lt;global namespace&gt;" To="DevQualX.*" />
+    <Allowed From="&lt;global namespace&gt;" To="Aspire.*" />
+    <Allowed From="&lt;global namespace&gt;" To="Projects" />
+    
+    <!-- ApiService can reference Application and its children -->
+    <Allowed From="DevQualX.ApiService" To="DevQualX.Application.*" />
+    <Allowed From="DevQualX.ApiService" To="DevQualX.Domain.*" />
+    
+    <!-- Web can reference Application and its children -->
+    <Allowed From="DevQualX.Web" To="DevQualX.Application.*" />
+    <Allowed From="DevQualX.Web" To="DevQualX.Domain.*" />
+    <Allowed From="DevQualX.Web" To="DevQualX.Web.*" />
+    
+    <!-- ========================================== -->
+    <!-- CLEAN ARCHITECTURE RULES -->
+    <!-- ========================================== -->
+    
+    <!-- Application Layer: Can only reference Domain -->
+    <Allowed From="DevQualX.Application.*" To="DevQualX.Domain.*" />
+    
+    <!-- Data Layer: Can only reference Domain -->
+    <Allowed From="DevQualX.Data.*" To="DevQualX.Domain.*" />
+    
+    <!-- Infrastructure Layer: Can only reference Domain -->
+    <Allowed From="DevQualX.Infrastructure.*" To="DevQualX.Domain.*" />
+    
+    <!-- Domain Layer: No dependencies on other DevQualX projects -->
+    <!-- (This is enforced implicitly - no Allowed rules for Domain to other layers) -->
+    
+    <!-- ========================================== -->
+    <!-- ASSEMBLY DEPENDENCY RULES -->
+    <!-- ========================================== -->
+    
+    <!-- Allow core framework assemblies -->
+    <AllowedAssembly From="*" To="mscorlib" />
+    <AllowedAssembly From="*" To="netstandard" />
+    <AllowedAssembly From="*" To="System.*" />
+    <AllowedAssembly From="*" To="Microsoft.Extensions.*" />
+    <AllowedAssembly From="*" To="Microsoft.*" />
+    <AllowedAssembly From="*" To="OpenTelemetry.*" />
+    <AllowedAssembly From="*" To="Polly.*" />
+    <AllowedAssembly From="*" To="WindowsBase" />
+    <AllowedAssembly From="*" To="Aspire.*" />
+    <AllowedAssembly From="*" To="Grpc.*" />
+    <AllowedAssembly From="*" To="Google.*" />
+    <AllowedAssembly From="*" To="HealthChecks.*" />
+    <AllowedAssembly From="*" To="Humanizer" />
+    <AllowedAssembly From="*" To="Json.*" />
+    <AllowedAssembly From="*" To="JsonPatch.*" />
+    <AllowedAssembly From="*" To="JsonPointer.*" />
+    <AllowedAssembly From="*" To="KubernetesClient" />
+    <AllowedAssembly From="*" To="MessagePack.*" />
+    <AllowedAssembly From="*" To="Nerdbank.*" />
+    <AllowedAssembly From="*" To="Newtonsoft.*" />
+    <AllowedAssembly From="*" To="Semver" />
+    <AllowedAssembly From="*" To="StreamJsonRpc" />
+    <AllowedAssembly From="*" To="YamlDotNet" />
+    <AllowedAssembly From="*" To="Fractions" />
+    
+    <!-- Application can reference Domain -->
+    <AllowedAssembly From="DevQualX.Application" To="DevQualX.Domain" />
+    
+    <!-- Data can reference Domain -->
+    <AllowedAssembly From="DevQualX.Data" To="DevQualX.Domain" />
+    
+    <!-- Infrastructure can reference Domain -->
+    <AllowedAssembly From="DevQualX.Infrastructure" To="DevQualX.Domain" />
+    
+    <!-- ApiService can reference Application (and transitively Domain) -->
+    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.Application" />
+    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.Data" />
+    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.Infrastructure" />
+    <AllowedAssembly From="DevQualX.ApiService" To="DevQualX.ServiceDefaults" />
+    
+    <!-- Web can reference Application (and transitively Domain) -->
+    <AllowedAssembly From="DevQualX.Web" To="DevQualX.Application" />
+    <AllowedAssembly From="DevQualX.Web" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.Web" To="DevQualX.ServiceDefaults" />
+    
+    <!-- Disallow Data and Infrastructure from referencing each other -->
+    <DisallowedAssembly From="DevQualX.Data" To="DevQualX.Infrastructure" />
+    <DisallowedAssembly From="DevQualX.Infrastructure" To="DevQualX.Data" />
+    
+    <!-- Disallow Application from referencing Data or Infrastructure -->
+    <DisallowedAssembly From="DevQualX.Application" To="DevQualX.Data" />
+    <DisallowedAssembly From="DevQualX.Application" To="DevQualX.Infrastructure" />
+    
+</NsDepCopConfig>

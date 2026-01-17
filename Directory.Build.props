@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <!-- Treat all warnings as errors to enforce architecture -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- NsDepCop analyzer for architecture enforcement -->
+    <PackageReference Include="NsDepCop" Version="2.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Automatically mark config.nsdepcop files as analyzer additional files -->
+    <AdditionalFiles Include="config.nsdepcop" Condition="Exists('config.nsdepcop')" />
+  </ItemGroup>
+</Project>

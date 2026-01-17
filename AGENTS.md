@@ -122,6 +122,66 @@ builder.Services.AddApplicationServices();  // Registers application services (s
 builder.Services.AddDomainServices();       // Registers domain services
 ```
 
+### Architecture Enforcement with NsDepCop
+
+DevQualX uses **NsDepCop 2.7.0** to enforce clean architecture rules at build time. NsDepCop is configured with warnings treated as errors, ensuring architectural violations prevent compilation.
+
+**Configuration Files:**
+- `/config.nsdepcop` - Master configuration at solution root with `InheritanceDepth="2"`
+- `src/<ProjectName>/config.nsdepcop` - Project-specific configs that inherit from master
+
+**Key Rules Enforced:**
+
+1. **Layer Dependencies** (Assembly-level):
+   - ✅ Application → Domain (allowed)
+   - ✅ Data → Domain (allowed)
+   - ✅ Infrastructure → Domain (allowed)
+   - ✅ ApiService/Web → Application + Domain (allowed transitively)
+   - ❌ Application → Data (disallowed)
+   - ❌ Application → Infrastructure (disallowed)
+   - ❌ Data ↔ Infrastructure (disallowed)
+   - ❌ Domain → any other layer (disallowed)
+
+2. **Namespace Dependencies**:
+   - Child namespaces can depend on parents implicitly (`ChildCanDependOnParentImplicitly="true"`)
+   - Sibling namespaces require explicit `<Allowed>` rules
+   - Global namespace (top-level statements) can reference DevQualX.*, Aspire.*, and Projects namespaces
+
+3. **Framework and Third-Party Assemblies**:
+   - All projects can reference: System.*, Microsoft.*, Aspire.*, OpenTelemetry.*, Polly.*, and common packages
+   - Assembly-level checking enabled (`CheckAssemblyDependencies="true"`)
+
+**Common NsDepCop Violations:**
+
+```csharp
+// ❌ VIOLATION: Application layer referencing Data layer
+// DevQualX.Application/Weather/GetWeatherForecast.cs
+using DevQualX.Data.Repositories;  // Error: NSDEPCOP07
+
+// ✅ CORRECT: Application layer using Domain interfaces
+// DevQualX.Application/Weather/GetWeatherForecast.cs
+using DevQualX.Domain.Services;    // OK - Application can reference Domain
+
+// ❌ VIOLATION: Domain layer depending on Infrastructure
+// DevQualX.Domain/Services/WeatherService.cs
+using DevQualX.Infrastructure.Adapters;  // Error: NSDEPCOP01
+
+// ✅ CORRECT: Domain defines interfaces, Infrastructure implements them
+// DevQualX.Domain/Services/IExternalWeatherService.cs (interface)
+// DevQualX.Infrastructure/Adapters/ExternalWeatherService.cs (implementation)
+```
+
+**Build Behavior:**
+- All NsDepCop warnings are treated as errors (`TreatWarningsAsErrors="true"`)
+- Build fails immediately on any architectural violation
+- Violations include both namespace (NSDEPCOP01) and assembly (NSDEPCOP07) reference errors
+
+**When Adding New Dependencies:**
+1. Ensure the dependency follows clean architecture principles
+2. Update `config.nsdepcop` if adding new allowed patterns
+3. Never disable NsDepCop or use `MaxIssueCount` workarounds
+4. Build must succeed with 0 errors before committing
+
 ## Blazor Server
 
 The Blazor frontend uses **static server-side rendering (SSR) by default** to maximize performance and simplify development:

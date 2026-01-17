@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2" IsEnabled="true">
+    <!-- Web: Blazor Server frontend -->
+    <!-- Can reference Application and ServiceDefaults -->
+    
+    <!-- ASP.NET Core and Blazor namespaces -->
+    <Allowed From="DevQualX.Web.*" To="Microsoft.AspNetCore.*" />
+    
+    <!-- Allow referencing application and domain layers -->
+    <Allowed From="DevQualX.Web.*" To="DevQualX.Application.*" />
+    <Allowed From="DevQualX.Web.*" To="DevQualX.Domain.*" />
+</NsDepCopConfig>

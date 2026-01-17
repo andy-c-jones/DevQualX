@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2" IsEnabled="true">
+    <!-- Domain Layer: Core of the application -->
+    <!-- Should have NO dependencies on other DevQualX projects -->
+    <!-- Only system libraries and framework dependencies allowed -->
+</NsDepCopConfig>

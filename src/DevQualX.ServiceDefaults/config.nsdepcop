@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2" IsEnabled="true">
+    <!-- ServiceDefaults: Shared Aspire service configuration -->
+    
+    <!-- ASP.NET Core namespaces -->
+    <Allowed From="Microsoft.Extensions.Hosting" To="Microsoft.AspNetCore.*" />
+    <Allowed From="Microsoft.Extensions.Hosting" To="Microsoft.Extensions.*" />
+    
+    <!-- OpenTelemetry -->
+    <Allowed From="Microsoft.Extensions.Hosting" To="OpenTelemetry.*" />
+    
+    <!-- Service Discovery -->
+    <Allowed From="Microsoft.Extensions.Hosting" To="Microsoft.Extensions.ServiceDiscovery" />
+</NsDepCopConfig>
