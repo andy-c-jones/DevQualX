@@ -1,10 +1,17 @@
 using DevQualX.Api.Extensions;
 using DevQualX.Application;
+using DevQualX.Application.Authorization;
 using DevQualX.Application.Reports;
 using DevQualX.Application.Weather;
+using DevQualX.Data;
 using DevQualX.Domain.Models;
+using DevQualX.Functional;
 using DevQualX.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,10 +25,33 @@ builder.AddAzureServiceBusClient("messaging");
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
-// Add application, domain, and infrastructure services
+// Add application, domain, data, and infrastructure services
 builder.Services.AddApplicationServices();
 builder.Services.AddDomainServices();
+builder.Services.AddDataServices();
 builder.Services.AddInfrastructureServices();
+
+// Configure JWT Bearer authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwtSettings = builder.Configuration.GetSection("Jwt");
+        var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured");
+        
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorizationBuilder();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -30,6 +60,10 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+
+// Add authentication & authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -45,11 +79,14 @@ app.MapGet("/weatherforecast", async (IGetWeatherForecast getWeatherForecast) =>
 })
 .WithName("GetWeatherForecast");
 
-app.MapPost("/reports", async (
+app.MapPost("/reports", [Authorize] async (
     IFormFile file,
     [FromForm] string organisation,
     [FromForm] string project,
+    [FromForm] int installationId,
     IUploadReport uploadReport,
+    ICheckUserRole checkUserRole,
+    HttpContext httpContext,
     CancellationToken cancellationToken) =>
 {
     if (file == null || file.Length == 0)
@@ -61,10 +98,50 @@ app.MapPost("/reports", async (
     {
         return Results.BadRequest("Organisation and project are required");
     }
+    
+    if (installationId <= 0)
+    {
+        return Results.BadRequest("Valid installation ID is required");
+    }
+
+    // Get user ID from claims
+    var userIdClaim = httpContext.User.FindFirst("github_user_id")?.Value;
+    if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    // Check if user has permission to upload to this installation
+    var authResult = await checkUserRole.ExecuteAsync(
+        (int)userId,
+        installationId,
+        Role.Reader,
+        RoleScope.Organization,
+        resourceId: null,
+        cancellationToken);
+
+    if (authResult is Failure<bool, Error> authFailure)
+    {
+        return Results.Problem(
+            title: "Authorization failed",
+            detail: authFailure.Error.Message,
+            statusCode: StatusCodes.Status500InternalServerError);
+    }
+
+    var hasPermission = ((Success<bool, Error>)authResult).Value;
+    if (!hasPermission)
+    {
+        return Results.Problem(
+            title: "Insufficient permissions",
+            detail: $"User does not have permission to upload reports for installation {installationId}",
+            statusCode: StatusCodes.Status403Forbidden);
+    }
 
     await using var stream = file.OpenReadStream();
     
     var request = new ReportUploadRequest(
+        userId,
+        installationId,
         organisation,
         project,
         file.FileName,
@@ -72,12 +149,13 @@ app.MapPost("/reports", async (
         file.Length,
         stream);
 
-    var metadata = await uploadReport.ExecuteAsync(request, cancellationToken);
+    var result = await uploadReport.ExecuteAsync(request, cancellationToken);
     
-    return Results.Ok(metadata);
+    return result.ToHttpResult();
 })
 .WithName("UploadReport")
-.DisableAntiforgery(); // Anonymous access
+.DisableAntiforgery() // For form file upload
+.RequireAuthorization();
 
 app.MapDefaultEndpoints();
 

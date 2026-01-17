@@ -8,6 +8,8 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Azure.Messaging.ServiceBus" Version="13.1.0" />
     <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.1.0" />
+    <PackageReference Include="Octokit" Version="14.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
   </ItemGroup>
 
   <PropertyGroup>

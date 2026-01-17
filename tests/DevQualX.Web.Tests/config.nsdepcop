@@ -18,7 +18,13 @@
     <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.Web" />
     <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.Application" />
     <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.Data" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.Infrastructure" />
     <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.ServiceDefaults" />
+    
+    <!-- Web.Tests has transitive dependencies through Web (Dapper, Octokit) -->
+    <AllowedAssembly From="DevQualX.Web.Tests" To="Dapper" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="Octokit" />
     
     <!-- Allow test framework namespaces -->
     <Allowed From="DevQualX.Web.Tests.*" To="TUnit.*" />

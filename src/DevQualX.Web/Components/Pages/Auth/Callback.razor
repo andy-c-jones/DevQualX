@@ -1,0 +1,224 @@
+@page "/auth/callback"
+@using DevQualX.Application.Authentication
+@using DevQualX.Functional
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@inject ICompleteOAuth CompleteOAuth
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager Navigation
+
+<PageTitle>Signing In - DevQualX</PageTitle>
+
+<div class="callback-container">
+    <div class="callback-card">
+        @if (isProcessing)
+        {
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h2>Completing sign-in...</h2>
+            <p>Please wait while we authenticate your GitHub account.</p>
+        }
+        else if (errorMessage != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                <h4>Authentication Failed</h4>
+                <p>@errorMessage</p>
+                <a href="/auth/signin" class="btn btn-primary">Try Again</a>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool isProcessing = true;
+    private string? errorMessage = null;
+    
+    [SupplyParameterFromQuery(Name = "code")]
+    public string? Code { get; set; }
+    
+    [SupplyParameterFromQuery(Name = "state")]
+    public string? State { get; set; }
+    
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+    
+    [SupplyParameterFromQuery(Name = "error_description")]
+    public string? ErrorDescription { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if GitHub returned an error
+        if (!string.IsNullOrEmpty(Error))
+        {
+            errorMessage = $"GitHub authentication error: {ErrorDescription ?? Error}";
+            isProcessing = false;
+            return;
+        }
+        
+        // Validate required parameters
+        if (string.IsNullOrEmpty(Code) || string.IsNullOrEmpty(State))
+        {
+            errorMessage = "Invalid callback request. Missing code or state parameter.";
+            isProcessing = false;
+            return;
+        }
+        
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext == null)
+        {
+            errorMessage = "HTTP context is not available.";
+            isProcessing = false;
+            return;
+        }
+        
+        var session = httpContext.Session;
+        
+        // Retrieve PKCE code verifier and state from session
+        var storedCodeVerifier = session.GetString("OAuth_CodeVerifier");
+        var storedState = session.GetString("OAuth_State");
+        
+        if (string.IsNullOrEmpty(storedCodeVerifier) || string.IsNullOrEmpty(storedState))
+        {
+            errorMessage = "Session expired or invalid. Please try signing in again.";
+            isProcessing = false;
+            return;
+        }
+        
+        // Validate state parameter (CSRF protection)
+        if (State != storedState)
+        {
+            errorMessage = "Invalid state parameter. Possible CSRF attack detected.";
+            isProcessing = false;
+            
+            // Clear session
+            session.Remove("OAuth_CodeVerifier");
+            session.Remove("OAuth_State");
+            return;
+        }
+        
+        // Clear session values (single use)
+        session.Remove("OAuth_CodeVerifier");
+        session.Remove("OAuth_State");
+        
+        try
+        {
+            // Build redirect URI (must match what was used in InitiateOAuth)
+            var redirectUri = Navigation.ToAbsoluteUri("/auth/callback").ToString();
+            
+            // Complete OAuth flow
+            var result = await CompleteOAuth.ExecuteAsync(Code, storedCodeVerifier, redirectUri);
+            
+            if (result is Failure<AuthenticatedUserResult, Error> failure)
+            {
+                errorMessage = $"Authentication failed: {failure.Error.Message}";
+                isProcessing = false;
+                return;
+            }
+            
+            var authenticatedUser = ((Success<AuthenticatedUserResult, Error>)result).Value;
+            
+            // Create authentication claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, authenticatedUser.GitHubUserId.ToString()),
+                new Claim(ClaimTypes.Name, authenticatedUser.Login),
+                new Claim("github_user_id", authenticatedUser.GitHubUserId.ToString()),
+                new Claim("access_token", authenticatedUser.AccessToken), // Encrypted by ASP.NET Data Protection
+                new Claim("avatar_url", authenticatedUser.AvatarUrl),
+            };
+            
+            if (!string.IsNullOrEmpty(authenticatedUser.Email))
+            {
+                claims.Add(new Claim(ClaimTypes.Email, authenticatedUser.Email));
+            }
+            
+            if (!string.IsNullOrEmpty(authenticatedUser.Name))
+            {
+                claims.Add(new Claim("name", authenticatedUser.Name));
+            }
+            
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+            
+            // Sign in the user
+            await httpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                claimsPrincipal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+                });
+            
+            // Redirect to organization selection
+            Navigation.NavigateTo("/auth/select-org", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An unexpected error occurred: {ex.Message}";
+            isProcessing = false;
+        }
+    }
+}
+
+<style>
+    .callback-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 2rem;
+    }
+    
+    .callback-card {
+        max-width: 480px;
+        width: 100%;
+        padding: 3rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .callback-card h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+    }
+    
+    .callback-card p {
+        font-size: 1rem;
+        color: #666;
+    }
+    
+    .alert {
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: left;
+    }
+    
+    .alert-danger {
+        background-color: #fee;
+        border: 1px solid #fcc;
+        color: #c33;
+    }
+    
+    .alert h4 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .alert .btn {
+        margin-top: 1rem;
+    }
+</style>

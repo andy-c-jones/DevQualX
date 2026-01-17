@@ -1,0 +1,75 @@
+@page "/auth/signout"
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using DevQualX.Web.Services
+@inject IHttpContextAccessor HttpContextAccessor
+@inject OrgContextService OrgContext
+@inject NavigationManager Navigation
+
+<PageTitle>Signing Out - DevQualX</PageTitle>
+
+<div class="signout-container">
+    <div class="signout-card">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <h2>Signing out...</h2>
+        <p>Please wait while we sign you out.</p>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            // Clear selected organization from session
+            OrgContext.ClearSelectedInstallation();
+            
+            // Sign out user (clear authentication cookie)
+            await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+        
+        // Redirect to sign-in page
+        Navigation.NavigateTo("/auth/signin", forceLoad: true);
+    }
+}
+
+<style>
+    .signout-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 2rem;
+    }
+    
+    .signout-card {
+        max-width: 480px;
+        width: 100%;
+        padding: 3rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .signout-card h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+    }
+    
+    .signout-card p {
+        font-size: 1rem;
+        color: #666;
+    }
+</style>

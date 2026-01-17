@@ -6,7 +6,9 @@
     <!-- ASP.NET Core and Blazor namespaces -->
     <Allowed From="DevQualX.Web.*" To="Microsoft.AspNetCore.*" />
     
-    <!-- Allow referencing application and domain layers -->
+    <!-- Allow referencing application, domain, data, and infrastructure layers -->
     <Allowed From="DevQualX.Web.*" To="DevQualX.Application.*" />
     <Allowed From="DevQualX.Web.*" To="DevQualX.Domain.*" />
+    <Allowed From="DevQualX.Web.*" To="DevQualX.Data" />
+    <Allowed From="DevQualX.Web.*" To="DevQualX.Infrastructure" />
 </NsDepCopConfig>

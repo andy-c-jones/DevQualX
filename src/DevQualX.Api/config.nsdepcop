@@ -6,6 +6,9 @@
     <!-- ASP.NET Core namespaces -->
     <Allowed From="DevQualX.Api" To="Microsoft.AspNetCore.*" />
     
+    <!-- JWT authentication -->
+    <Allowed From="DevQualX.Api" To="Microsoft.IdentityModel.Tokens" />
+    
     <!-- OpenAPI/Swagger -->
     <Allowed From="DevQualX.Api" To="Scalar.AspNetCore" />
     

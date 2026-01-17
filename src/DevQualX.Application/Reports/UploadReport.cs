@@ -1,5 +1,6 @@
 using DevQualX.Domain.Infrastructure;
 using DevQualX.Domain.Models;
+using DevQualX.Functional;
 using Microsoft.Extensions.Logging;
 
 namespace DevQualX.Application.Reports;
@@ -20,43 +21,75 @@ public class UploadReport(
         "text/csv"
     ];
 
-    public async Task<ReportMetadata> ExecuteAsync(
+    public async Task<Result<ReportMetadata, Error>> ExecuteAsync(
         ReportUploadRequest request,
         CancellationToken cancellationToken = default)
     {
         // Validate file size
         if (request.FileSizeBytes > MaxFileSizeBytes)
         {
-            throw new InvalidOperationException($"File size {request.FileSizeBytes} bytes exceeds maximum allowed size of {MaxFileSizeBytes} bytes");
+            return new ValidationError
+            {
+                Message = $"File size {request.FileSizeBytes} bytes exceeds maximum allowed size of {MaxFileSizeBytes} bytes",
+                Code = "FILE_TOO_LARGE"
+            };
         }
 
         // Validate content type
         if (!AllowedContentTypes.Contains(request.ContentType.ToLowerInvariant()))
         {
-            throw new InvalidOperationException($"Content type {request.ContentType} is not allowed. Allowed types: {string.Join(", ", AllowedContentTypes)}");
+            return new ValidationError
+            {
+                Message = $"Content type {request.ContentType} is not allowed",
+                Code = "INVALID_CONTENT_TYPE",
+                Errors = new Dictionary<string, string[]>
+                {
+                    ["ContentType"] = [$"Allowed types: {string.Join(", ", AllowedContentTypes)}"]
+                }
+            };
         }
 
-        logger.LogInformation("Uploading report: {Organisation}/{Project}/{FileName}", 
-            request.Organisation, request.Project, request.FileName);
+        logger.LogInformation(
+            "User {UserId} uploading report to installation {InstallationId}: {Organisation}/{Project}/{FileName}",
+            request.UserId, request.InstallationId, request.Organisation, request.Project, request.FileName);
 
-        // Upload to blob storage (decompresses Brotli internally)
-        var metadata = await blobStorageService.UploadReportAsync(
-            request.Organisation,
-            request.Project,
-            request.FileName,
-            request.ContentType,
-            request.Content,
-            cancellationToken: cancellationToken);
+        try
+        {
+            // Upload to blob storage (decompresses Brotli internally)
+            var metadata = await blobStorageService.UploadReportAsync(
+                request.Organisation,
+                request.Project,
+                request.FileName,
+                request.ContentType,
+                request.Content,
+                cancellationToken: cancellationToken);
 
-        // Send message to queue
-        await messageQueueService.SendMessageAsync(
-            "reports",
-            metadata,
-            new Dictionary<string, object> { ["AttemptCount"] = 1 },
-            cancellationToken);
+            // Send message to queue
+            await messageQueueService.SendMessageAsync(
+                "reports",
+                metadata,
+                new Dictionary<string, object> 
+                { 
+                    ["AttemptCount"] = 1,
+                    ["UserId"] = request.UserId,
+                    ["InstallationId"] = request.InstallationId
+                },
+                cancellationToken);
 
-        logger.LogInformation("Report uploaded and queued: {BlobUrl}", metadata.BlobUrl);
+            logger.LogInformation(
+                "Report uploaded and queued by user {UserId}: {BlobUrl}",
+                request.UserId, metadata.BlobUrl);
 
-        return metadata;
+            return metadata;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to upload report for user {UserId}", request.UserId);
+            return new InternalError
+            {
+                Message = "Failed to upload report",
+                Code = "UPLOAD_FAILED"
+            };
+        }
     }
 }

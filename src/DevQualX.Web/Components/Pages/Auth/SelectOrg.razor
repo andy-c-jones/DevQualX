@@ -1,0 +1,270 @@
+@page "/auth/select-org"
+@using DevQualX.Application.Installation
+@using DevQualX.Domain.Models
+@using DevQualX.Functional
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@attribute [Authorize]
+@inject IGetUserInstallations GetUserInstallations
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager Navigation
+
+<PageTitle>Select Organization - DevQualX</PageTitle>
+
+<div class="select-org-container">
+    <div class="select-org-card">
+        <h1>Select Organization</h1>
+        <p class="subtitle">Choose an organization to analyze</p>
+        
+        @if (isLoading)
+        {
+            <div class="loading-state">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading your organizations...</p>
+            </div>
+        }
+        else if (errorMessage != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                <h4>Error Loading Organizations</h4>
+                <p>@errorMessage</p>
+                <button class="btn btn-primary" @onclick="LoadInstallations">Retry</button>
+            </div>
+        }
+        else if (installations == null || installations.Count == 0)
+        {
+            <div class="alert alert-info" role="alert">
+                <h4>No Organizations Found</h4>
+                <p>You don't have access to any organizations with DevQualX installed.</p>
+                <p>Install the DevQualX GitHub App on your organization to get started.</p>
+                <a href="https://github.com/apps/devqualx" class="btn btn-primary" target="_blank">
+                    Install GitHub App
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="installations-list">
+                @foreach (var installation in installations)
+                {
+                    <div class="installation-card" @onclick="() => SelectInstallation(installation.Id)">
+                        <div class="installation-info">
+                            @if (!string.IsNullOrEmpty(installation.Account.AvatarUrl))
+                            {
+                                <img src="@installation.Account.AvatarUrl" alt="@installation.Account.Login" class="org-avatar" />
+                            }
+                            <div>
+                                <h3>@installation.Account.Login</h3>
+                                <p class="account-type">@installation.Account.Type</p>
+                            </div>
+                        </div>
+                        <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage = null;
+    private IReadOnlyList<GitHubInstallation>? installations = null;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInstallations();
+    }
+    
+    private async Task LoadInstallations()
+    {
+        isLoading = true;
+        errorMessage = null;
+        
+        try
+        {
+            var httpContext = HttpContextAccessor.HttpContext;
+            if (httpContext?.User?.Identity?.IsAuthenticated != true)
+            {
+                Navigation.NavigateTo("/auth/signin", forceLoad: true);
+                return;
+            }
+            
+            // Get access token from claims
+            var accessToken = httpContext.User.FindFirst("access_token")?.Value;
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                errorMessage = "Access token not found. Please sign in again.";
+                isLoading = false;
+                return;
+            }
+            
+            // Fetch user installations
+            var result = await GetUserInstallations.ExecuteAsync(accessToken);
+            
+            if (result is Failure<IReadOnlyList<GitHubInstallation>, Error> failure)
+            {
+                errorMessage = $"Failed to load organizations: {failure.Error.Message}";
+                isLoading = false;
+                return;
+            }
+            
+            installations = ((Success<IReadOnlyList<GitHubInstallation>, Error>)result).Value;
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An unexpected error occurred: {ex.Message}";
+            isLoading = false;
+        }
+    }
+    
+    private void SelectInstallation(long installationId)
+    {
+        // Store selected installation in session
+        var session = HttpContextAccessor.HttpContext?.Session;
+        if (session != null)
+        {
+            session.SetInt32("SelectedInstallationId", (int)installationId);
+        }
+        
+        // Redirect to home page
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}
+
+<style>
+    .select-org-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 2rem;
+    }
+    
+    .select-org-card {
+        max-width: 640px;
+        width: 100%;
+        padding: 3rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .select-org-card h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+        text-align: center;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .loading-state {
+        text-align: center;
+        padding: 3rem 0;
+    }
+    
+    .loading-state .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .loading-state p {
+        color: #666;
+    }
+    
+    .alert {
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-danger {
+        background-color: #fee;
+        border: 1px solid #fcc;
+        color: #c33;
+    }
+    
+    .alert-info {
+        background-color: #e7f3ff;
+        border: 1px solid #b3d9ff;
+        color: #004085;
+    }
+    
+    .alert h4 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .alert .btn {
+        margin-top: 1rem;
+    }
+    
+    .installations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .installation-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .installation-card:hover {
+        background: #e9ecef;
+        border-color: #dee2e6;
+        transform: translateX(4px);
+    }
+    
+    .installation-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .org-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+    
+    .installation-info h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+        color: #1a1a1a;
+    }
+    
+    .account-type {
+        font-size: 0.875rem;
+        color: #666;
+        margin: 0.25rem 0 0 0;
+        text-transform: capitalize;
+    }
+    
+    .chevron-icon {
+        color: #6c757d;
+    }
+</style>

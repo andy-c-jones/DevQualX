@@ -4,6 +4,8 @@ namespace DevQualX.Domain.Models;
 /// Request to upload a report file.
 /// </summary>
 public record ReportUploadRequest(
+    long UserId,
+    int InstallationId,
     string Organisation,
     string Project,
     string FileName,

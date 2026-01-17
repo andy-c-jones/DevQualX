@@ -42,15 +42,19 @@
     <Allowed From="&lt;global namespace&gt;" To="DevQualX.*" />
     <Allowed From="&lt;global namespace&gt;" To="Aspire.*" />
     <Allowed From="&lt;global namespace&gt;" To="Projects" />
+    <Allowed From="&lt;global namespace&gt;" To="Microsoft.IdentityModel.Tokens" />
     
     <!-- Api can reference Application and its children -->
     <Allowed From="DevQualX.Api" To="DevQualX.Application.*" />
     <Allowed From="DevQualX.Api" To="DevQualX.Domain.*" />
+    <Allowed From="DevQualX.Api" To="DevQualX.Data" />
     <Allowed From="DevQualX.Api" To="DevQualX.Infrastructure" />
     
     <!-- Web can reference Application and its children -->
     <Allowed From="DevQualX.Web" To="DevQualX.Application.*" />
     <Allowed From="DevQualX.Web" To="DevQualX.Domain.*" />
+    <Allowed From="DevQualX.Web" To="DevQualX.Data" />
+    <Allowed From="DevQualX.Web" To="DevQualX.Infrastructure" />
     <Allowed From="DevQualX.Web" To="DevQualX.Web.*" />
     
     <!-- Worker can reference Application and Infrastructure -->
@@ -68,8 +72,24 @@
     <!-- Data Layer: Can only reference Domain -->
     <Allowed From="DevQualX.Data.*" To="DevQualX.Domain.*" />
     
+    <!-- Data root can reference Repositories for DI registration -->
+    <Allowed From="DevQualX.Data" To="DevQualX.Data.Repositories" />
+    
+    <!-- Allow Dapper and SqlClient in Data layer -->
+    <Allowed From="DevQualX.Data.*" To="Dapper" />
+    <Allowed From="DevQualX.Data.*" To="Microsoft.Data.SqlClient" />
+    
     <!-- Infrastructure Layer: Can only reference Domain -->
     <Allowed From="DevQualX.Infrastructure.*" To="DevQualX.Domain.*" />
+    
+    <!-- Infrastructure root can reference Adapters for DI registration -->
+    <Allowed From="DevQualX.Infrastructure" To="DevQualX.Infrastructure.Adapters" />
+    <Allowed From="DevQualX.Infrastructure" To="DevQualX.Infrastructure.Adapters.GitHub" />
+    
+    <!-- Allow Octokit and JWT in Infrastructure layer -->
+    <Allowed From="DevQualX.Infrastructure.*" To="Octokit" />
+    <Allowed From="DevQualX.Infrastructure.*" To="System.IdentityModel.Tokens.Jwt" />
+    <Allowed From="DevQualX.Infrastructure.*" To="Microsoft.IdentityModel.Tokens" />
     
     <!-- Domain Layer: No dependencies on other DevQualX projects -->
     <!-- (This is enforced implicitly - no Allowed rules for Domain to other layers) -->
@@ -104,6 +124,22 @@
     <AllowedAssembly From="*" To="YamlDotNet" />
     <AllowedAssembly From="*" To="Fractions" />
     
+    <!-- Allow Dapper for Data layer -->
+    <AllowedAssembly From="DevQualX.Data" To="Dapper" />
+    
+    <!-- Allow Octokit for Infrastructure layer -->
+    <AllowedAssembly From="DevQualX.Infrastructure" To="Octokit" />
+    
+    <!-- Allow Infrastructure.Tests to reference Octokit (for testing GitHub services) -->
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="Octokit" />
+    
+    <!-- Api has transitive dependencies through Data (Dapper) and Infrastructure (Octokit) -->
+    <AllowedAssembly From="DevQualX.Api" To="Dapper" />
+    <AllowedAssembly From="DevQualX.Api" To="Octokit" />
+    
+    <!-- Worker has transitive dependencies through Infrastructure (Octokit) -->
+    <AllowedAssembly From="DevQualX.Worker" To="Octokit" />
+    
     <!-- Allow Azure SDK assemblies -->
     <AllowedAssembly From="*" To="Azure.*" />
     
@@ -123,10 +159,16 @@
     <AllowedAssembly From="DevQualX.Api" To="DevQualX.Infrastructure" />
     <AllowedAssembly From="DevQualX.Api" To="DevQualX.ServiceDefaults" />
     
-    <!-- Web can reference Application and Domain -->
+    <!-- Web can reference Application, Domain, Data, Infrastructure -->
     <AllowedAssembly From="DevQualX.Web" To="DevQualX.Application" />
     <AllowedAssembly From="DevQualX.Web" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.Web" To="DevQualX.Data" />
+    <AllowedAssembly From="DevQualX.Web" To="DevQualX.Infrastructure" />
     <AllowedAssembly From="DevQualX.Web" To="DevQualX.ServiceDefaults" />
+    
+    <!-- Web has transitive dependencies through Data (Dapper) and Infrastructure (Octokit) -->
+    <AllowedAssembly From="DevQualX.Web" To="Dapper" />
+    <AllowedAssembly From="DevQualX.Web" To="Octokit" />
     
     <!-- Worker can reference Application, Domain, Infrastructure -->
     <AllowedAssembly From="DevQualX.Worker" To="DevQualX.Application" />
@@ -141,5 +183,18 @@
     <!-- Disallow Application from referencing Data or Infrastructure -->
     <DisallowedAssembly From="DevQualX.Application" To="DevQualX.Data" />
     <DisallowedAssembly From="DevQualX.Application" To="DevQualX.Infrastructure" />
+    
+    <!-- ========================================== -->
+    <!-- TEST PROJECT RULES -->
+    <!-- ========================================== -->
+    
+    <!-- Infrastructure.Tests can reference Infrastructure and Octokit -->
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="DevQualX.Infrastructure" />
+    <Allowed From="DevQualX.Infrastructure.Tests.*" To="DevQualX.Infrastructure.*" />
+    <Allowed From="DevQualX.Infrastructure.Tests.*" To="Octokit" />
+    
+    <!-- Api.Tests has transitive dependencies through Api (Dapper, Octokit) -->
+    <AllowedAssembly From="DevQualX.Api.Tests" To="Dapper" />
+    <AllowedAssembly From="DevQualX.Api.Tests" To="Octokit" />
     
 </NsDepCopConfig>

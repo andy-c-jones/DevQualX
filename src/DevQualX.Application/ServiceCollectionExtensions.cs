@@ -1,3 +1,6 @@
+using DevQualX.Application.Authentication;
+using DevQualX.Application.Authorization;
+using DevQualX.Application.Installation;
 using DevQualX.Application.Reports;
 using DevQualX.Application.Weather;
 using DevQualX.Domain.Services;
@@ -15,8 +18,23 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Register application services (IDD pattern - transient or scoped)
+        // Authentication services
+        services.AddScoped<IInitiateOAuth, InitiateOAuth>();
+        services.AddScoped<ICompleteOAuth, CompleteOAuth>();
+        services.AddScoped<ISignOutUser, SignOutUser>();
+        
+        // Installation services
+        services.AddScoped<IGetUserInstallations, GetUserInstallations>();
+        services.AddScoped<ISyncInstallationData, SyncInstallationData>();
+        
+        // Authorization services
+        services.AddScoped<ICheckUserRole, CheckUserRole>();
+        services.AddScoped<IGetUserPermissions, GetUserPermissions>();
+        
+        // Weather services (example)
         services.AddScoped<IGetWeatherForecast, GetWeatherForecast>();
+        
+        // Report services
         services.AddScoped<IUploadReport, UploadReport>();
         services.AddScoped<IProcessReport, ProcessReport>();
 

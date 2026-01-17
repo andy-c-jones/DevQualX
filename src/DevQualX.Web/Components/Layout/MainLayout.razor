@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +7,12 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <div class="top-row-left">
+                <OrgSwitcher />
+            </div>
+            <div class="top-row-right">
+                <UserMenu />
+            </div>
         </div>
 
         <article class="content px-4">
@@ -21,3 +26,25 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+<style>
+    .top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .top-row-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .top-row-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-left: auto;
+    }
+</style>

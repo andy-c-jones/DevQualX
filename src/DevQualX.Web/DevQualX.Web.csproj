@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\DevQualX.Functional\DevQualX.Functional.csproj" />
     <ProjectReference Include="..\DevQualX.Application\DevQualX.Application.csproj" />
+    <ProjectReference Include="..\DevQualX.Data\DevQualX.Data.csproj" />
+    <ProjectReference Include="..\DevQualX.Infrastructure\DevQualX.Infrastructure.csproj" />
     <ProjectReference Include="..\DevQualX.ServiceDefaults\DevQualX.ServiceDefaults.csproj" />
   </ItemGroup>
 

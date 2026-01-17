@@ -1,0 +1,276 @@
+@using DevQualX.Application.Installation
+@using DevQualX.Domain.Models
+@using DevQualX.Functional
+@using DevQualX.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IGetUserInstallations GetUserInstallations
+@inject OrgContextService OrgContext
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        @if (isLoading)
+        {
+            <div class="org-switcher-loading">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                Loading...
+            </div>
+        }
+        else if (currentInstallation != null)
+        {
+            <div class="org-switcher">
+                <button class="org-switcher-button" @onclick="ToggleDropdown">
+                    @if (!string.IsNullOrEmpty(currentInstallation.Account.AvatarUrl))
+                    {
+                        <img src="@currentInstallation.Account.AvatarUrl" alt="@currentInstallation.Account.Login" class="org-avatar" />
+                    }
+                    <span class="org-name">@currentInstallation.Account.Login</span>
+                    <svg class="chevron-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 5.293a1 1 0 011.414 0L8 7.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                
+                @if (isDropdownOpen)
+                {
+                    <div class="org-switcher-dropdown">
+                        <div class="org-switcher-header">
+                            Switch Organization
+                        </div>
+                        
+                        <div class="org-switcher-items">
+                            @if (installations != null)
+                            {
+                                @foreach (var installation in installations)
+                                {
+                                    <button class="org-switcher-item @(installation.Id == currentInstallation.Id ? "active" : "")" 
+                                            @onclick="() => SwitchOrganization(installation)">
+                                        @if (!string.IsNullOrEmpty(installation.Account.AvatarUrl))
+                                        {
+                                            <img src="@installation.Account.AvatarUrl" alt="@installation.Account.Login" class="org-avatar" />
+                                        }
+                                        <span class="org-item-name">@installation.Account.Login</span>
+                                        @if (installation.Id == currentInstallation.Id)
+                                        {
+                                            <svg class="check-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        }
+                                    </button>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <a href="/auth/select-org" class="btn btn-secondary">Select Organization</a>
+        }
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private bool isLoading = true;
+    private bool isDropdownOpen = false;
+    private IReadOnlyList<GitHubInstallation>? installations;
+    private GitHubInstallation? currentInstallation;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInstallations();
+    }
+    
+    private async Task LoadInstallations()
+    {
+        isLoading = true;
+        
+        try
+        {
+            var accessToken = OrgContext.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                isLoading = false;
+                return;
+            }
+            
+            // Fetch user installations
+            var result = await GetUserInstallations.ExecuteAsync(accessToken);
+            
+            if (result is Success<IReadOnlyList<GitHubInstallation>, Error> success)
+            {
+                installations = success.Value;
+                
+                // Set current installation from session
+                var selectedId = OrgContext.GetSelectedInstallationId();
+                if (selectedId.HasValue)
+                {
+                    currentInstallation = installations.FirstOrDefault(i => i.Id == selectedId.Value);
+                }
+                
+                // If no installation selected but user has installations, select the first one
+                if (currentInstallation == null && installations.Count > 0)
+                {
+                    currentInstallation = installations[0];
+                    OrgContext.SetSelectedInstallationId((int)currentInstallation.Id);
+                }
+            }
+            
+            isLoading = false;
+        }
+        catch (Exception)
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void ToggleDropdown()
+    {
+        isDropdownOpen = !isDropdownOpen;
+    }
+    
+    private void SwitchOrganization(GitHubInstallation installation)
+    {
+        if (installation.Id != currentInstallation?.Id)
+        {
+            OrgContext.SetSelectedInstallationId((int)installation.Id);
+            currentInstallation = installation;
+            
+            // Reload the page to reflect the new organization context
+            Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+        }
+        
+        isDropdownOpen = false;
+    }
+}
+
+<style>
+    .org-switcher {
+        position: relative;
+    }
+    
+    .org-switcher-loading {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .org-switcher-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: transparent;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .org-switcher-button:hover {
+        background: #f9fafb;
+    }
+    
+    .org-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        object-fit: cover;
+    }
+    
+    .org-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+    }
+    
+    .chevron-icon {
+        color: #6b7280;
+    }
+    
+    .org-switcher-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 0.5rem;
+        width: 280px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        z-index: 50;
+    }
+    
+    .org-switcher-header {
+        padding: 0.75rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .org-switcher-items {
+        padding: 0.5rem;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+    
+    .org-switcher-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-align: left;
+    }
+    
+    .org-switcher-item:hover {
+        background: #f3f4f6;
+    }
+    
+    .org-switcher-item.active {
+        background: #eef2ff;
+    }
+    
+    .org-item-name {
+        flex: 1;
+        font-size: 0.875rem;
+        color: #374151;
+        font-weight: 500;
+    }
+    
+    .check-icon {
+        color: #6366f1;
+    }
+    
+    .btn-secondary {
+        padding: 0.5rem 1rem;
+        background: white;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .btn-secondary:hover {
+        background: #f9fafb;
+    }
+    
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.125rem;
+    }
+</style>
