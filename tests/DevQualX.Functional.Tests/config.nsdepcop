@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- Functional.Tests can only reference Functional and test frameworks -->
+    
+    <!-- Allow Functional assembly -->
+    <AllowedAssembly From="DevQualX.Functional.Tests" To="DevQualX.Functional" />
+    
+    <!-- Allow test framework assemblies -->
+    <AllowedAssembly From="DevQualX.Functional.Tests" To="TUnit" />
+    <AllowedAssembly From="DevQualX.Functional.Tests" To="TUnit.*" />
+    <AllowedAssembly From="DevQualX.Functional.Tests" To="testhost" />
+    <AllowedAssembly From="DevQualX.Functional.Tests" To="EnumerableAsyncProcessor" />
+    
+    <!-- Allow test framework namespaces -->
+    <Allowed From="DevQualX.Functional.Tests.*" To="TUnit.*" />
+    <Allowed From="DevQualX.Functional.Tests.*" To="DevQualX.Functional.*" />
+</NsDepCopConfig>

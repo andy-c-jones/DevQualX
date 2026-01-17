@@ -1,3 +1,4 @@
+using DevQualX.Api.Extensions;
 using DevQualX.Application;
 using DevQualX.Application.Reports;
 using DevQualX.Application.Weather;
@@ -39,7 +40,8 @@ app.MapGet("/", () => "API service is running. Navigate to /weatherforecast to s
 
 app.MapGet("/weatherforecast", async (IGetWeatherForecast getWeatherForecast) =>
 {
-    return await getWeatherForecast.ExecuteAsync(maxItems: 5);
+    var result = await getWeatherForecast.ExecuteAsync(maxItems: 5);
+    return result.ToHttpResult();  // Converts Result to 200 OK or ProblemDetails
 })
 .WithName("GetWeatherForecast");
 

@@ -1,5 +1,6 @@
 using DevQualX.Domain.Models;
 using DevQualX.Domain.Services;
+using DevQualX.Functional;
 
 namespace DevQualX.Application.Weather;
 
@@ -14,8 +15,8 @@ public class GetWeatherForecast(IWeatherService weatherService) : IGetWeatherFor
     /// </summary>
     /// <param name="maxItems">Maximum number of forecast items to return.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Array of weather forecasts.</returns>
-    public async Task<WeatherForecast[]> ExecuteAsync(int maxItems = 10, CancellationToken cancellationToken = default)
+    /// <returns>A Result containing an array of weather forecasts or an error.</returns>
+    public async Task<Result<WeatherForecast[], Error>> ExecuteAsync(int maxItems = 10, CancellationToken cancellationToken = default)
     {
         return await weatherService.GetForecastAsync(maxItems, cancellationToken);
     }

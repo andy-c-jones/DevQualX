@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- DevQualX.Functional has NO dependencies on other DevQualX projects -->
+    <!-- This is a foundation layer that all other projects can reference -->
+    <!-- Only System.* references are allowed -->
+</NsDepCopConfig>

@@ -1,6 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\DevQualX.Functional\DevQualX.Functional.csproj" />
     <ProjectReference Include="..\DevQualX.Domain\DevQualX.Domain.csproj" />
   </ItemGroup>
 

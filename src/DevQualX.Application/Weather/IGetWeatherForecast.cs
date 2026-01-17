@@ -1,4 +1,5 @@
 using DevQualX.Domain.Models;
+using DevQualX.Functional;
 
 namespace DevQualX.Application.Weather;
 
@@ -13,6 +14,6 @@ public interface IGetWeatherForecast
     /// </summary>
     /// <param name="maxItems">Maximum number of forecast items to return.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Array of weather forecasts.</returns>
-    Task<WeatherForecast[]> ExecuteAsync(int maxItems = 10, CancellationToken cancellationToken = default);
+    /// <returns>A Result containing an array of weather forecasts or an error.</returns>
+    Task<Result<WeatherForecast[], Error>> ExecuteAsync(int maxItems = 10, CancellationToken cancellationToken = default);
 }

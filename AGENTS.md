@@ -15,13 +15,15 @@ DevQualX is a .NET Aspire application built with:
 
 ```
 src/
-├── DevQualX.Api/       # REST API backend service
+├── DevQualX.Api/              # REST API backend service
 ├── DevQualX.Web/              # Blazor Server frontend
 │   └── Components/            # Razor components
 │       ├── Pages/             # Routable page components
 │       └── Layout/            # Layout components
 ├── DevQualX.AppHost/          # Aspire orchestration host
 ├── DevQualX.ServiceDefaults/  # Shared service configuration
+├── DevQualX.Functional/       # Functional programming primitives (foundation layer)
+│   └── Extensions/            # Option/Result extension methods
 ├── DevQualX.Application/      # Application layer (IDD services)
 │   └── Weather/               # Feature-based folders
 ├── DevQualX.Domain/           # Domain layer (services, DTOs, interfaces)
@@ -44,8 +46,15 @@ DevQualX follows a clean architecture pattern with Interaction-Driven Design pri
 **Layer Dependencies (dependencies flow inward):**
 ```
 Api/Web → Application → Domain ← Data
-                                    ← Infrastructure
+              ↓            ↓       ← Infrastructure
+         Functional   Functional
 ```
+
+**Foundation Layer:**
+- **DevQualX.Functional** - Core functional programming primitives
+  - Zero dependencies on other DevQualX projects
+  - Available to ALL layers (foundation layer)
+  - Provides: `Option<T>`, `Result<T, TError>`, `Either<TLeft, TRight>`, `Error` hierarchy
 
 **Key Principles:**
 
@@ -195,6 +204,309 @@ using DevQualX.Infrastructure.Adapters;  // Error: NSDEPCOP01
 2. Update `config.nsdepcop` if adding new allowed patterns
 3. Never disable NsDepCop or use `MaxIssueCount` workarounds
 4. Build must succeed with 0 errors before committing
+
+## Functional Error Handling with DevQualX.Functional
+
+DevQualX uses the **DevQualX.Functional** library for type-safe error handling and optional values. This library is a **foundation layer** available to all projects.
+
+### Core Principles
+
+**CRITICAL: Never use `null` for absence - use `Option<T>` instead.**
+**CRITICAL: Never use exceptions for known error conditions - use `Result<T, TError>` instead.**
+
+### When to Use Each Type
+
+**Use `Option<T>` when:**
+- A value may or may not be present (replaces `null`)
+- Searching for an item that might not exist
+- Optional parameters or properties
+- Parsing that might fail without a specific error reason
+
+**Use `Result<T, TError>` when:**
+- An operation can fail with known error conditions
+- You need to communicate WHY something failed
+- Validation errors, not found errors, authorization errors, etc.
+- Replacing exceptions for expected failure cases
+
+**Use exceptions ONLY for:**
+- Truly exceptional, unrecoverable situations (out of memory, stack overflow)
+- Programming errors (null reference, index out of range)
+- Framework/infrastructure failures you can't handle
+
+### Option<T> - Type-Safe Optional Values
+
+#### DON'T ❌
+```csharp
+// BAD: Using null
+public User? FindUserById(int id)
+{
+    return users.FirstOrDefault(u => u.Id == id);  // Returns null if not found
+}
+
+var user = FindUserById(42);
+if (user == null)  // Easy to forget null check, causes NullReferenceException
+{
+    // Handle not found
+}
+```
+
+#### DO ✅
+```csharp
+// GOOD: Using Option<T>
+public Option<User> FindUserById(int id)
+{
+    return users.FirstOrNone(u => u.Id == id);  // Returns None<User> if not found
+}
+
+var user = FindUserById(42);
+user.Match(
+    some: u => Console.WriteLine($"Found: {u.Name}"),
+    none: () => Console.WriteLine("User not found")
+);
+
+// Or use GetValueOrDefault
+var userName = FindUserById(42)
+    .Map(u => u.Name)
+    .GetValueOrDefault("Unknown");
+```
+
+#### Option LINQ Integration
+```csharp
+// SelectMany automatically filters out None values
+var userNames = userIds
+    .Select(id => FindUserById(id))  // Returns IEnumerable<Option<User>>
+    .Choose()                         // Filters None, unwraps to IEnumerable<User>
+    .Select(u => u.Name);
+
+// Or use ChooseMap for one-step map + filter
+var userEmails = userIds
+    .ChooseMap(id => FindUserById(id).Map(u => u.Email));
+```
+
+### Result<T, TError> - Functional Error Handling
+
+#### DON'T ❌
+```csharp
+// BAD: Using exceptions for known errors
+public User GetUserById(int id)
+{
+    var user = users.FirstOrDefault(u => u.Id == id);
+    if (user == null)
+    {
+        throw new NotFoundException($"User {id} not found");  // Exception for expected case
+    }
+    return user;
+}
+
+try
+{
+    var user = GetUserById(42);
+    // Process user
+}
+catch (NotFoundException ex)
+{
+    // Handle not found - using exceptions for control flow
+}
+```
+
+#### DO ✅
+```csharp
+// GOOD: Using Result<T, TError>
+public Result<User, Error> GetUserById(int id)
+{
+    return users
+        .FirstOrNone(u => u.Id == id)
+        .Match(
+            some: user => new Success<User, Error>(user),
+            none: () => new Failure<User, Error>(
+                new NotFoundError 
+                { 
+                    Message = $"User {id} not found",
+                    ResourceType = "User",
+                    ResourceId = id.ToString()
+                }
+            )
+        );
+}
+
+var result = GetUserById(42);
+result.Match(
+    success: user => Console.WriteLine($"Found: {user.Name}"),
+    failure: error => Console.WriteLine($"Error: {error.Message}")
+);
+```
+
+#### Result LINQ Integration for Railway-Oriented Programming
+```csharp
+// Chain operations that can fail - stops at first failure
+var result = ValidateUserInput(request)
+    .Bind(validInput => CreateUser(validInput))
+    .Bind(user => SendWelcomeEmail(user))
+    .Map(user => new UserDto(user.Id, user.Name, user.Email));
+
+// If any step fails, the error propagates through the chain
+// If all succeed, you get Success<UserDto, Error>
+```
+
+### Error Hierarchy
+
+DevQualX provides a discriminated union of error types:
+
+```csharp
+// Base error class
+public abstract record Error
+{
+    public required string Message { get; init; }
+    public string? Code { get; init; }
+    public Dictionary<string, object>? Metadata { get; init; }
+}
+
+// Specific error types (automatically map to HTTP status codes in API)
+ValidationError        // 400 Bad Request - validation failures
+BadRequestError        // 400 Bad Request - malformed requests
+UnauthorizedError      // 401 Unauthorized - authentication required
+ForbiddenError         // 403 Forbidden - insufficient permissions
+NotFoundError          // 404 Not Found - resource doesn't exist
+ConflictError          // 409 Conflict - duplicate resources
+ExternalServiceError   // 502 Bad Gateway - third-party service failures
+InternalError          // 500 Internal Server Error - unexpected errors
+```
+
+**Example:**
+```csharp
+// Domain service returns Result
+public Result<User, Error> CreateUser(CreateUserRequest request)
+{
+    // Validation
+    if (string.IsNullOrWhiteSpace(request.Email))
+    {
+        return new ValidationError 
+        { 
+            Message = "Email is required",
+            Code = "VAL001",
+            Errors = new Dictionary<string, string[]> 
+            {
+                ["Email"] = ["Email field is required"]
+            }
+        };
+    }
+    
+    // Check for conflicts
+    if (users.Any(u => u.Email == request.Email))
+    {
+        return new ConflictError 
+        { 
+            Message = $"User with email {request.Email} already exists",
+            ConflictingResource = request.Email
+        };
+    }
+    
+    var user = new User(request.Email, request.Name);
+    users.Add(user);
+    return user;  // Implicit conversion to Success<User, Error>
+}
+```
+
+### API Integration
+
+Use the extension methods in `DevQualX.Api.Extensions` to convert Result to HTTP responses:
+
+```csharp
+using DevQualX.Api.Extensions;
+
+// Automatic conversion to 200 OK or ProblemDetails
+app.MapGet("/users/{id}", async (int id, IGetUser getUser) =>
+{
+    var result = await getUser.ExecuteAsync(id);
+    return result.ToHttpResult();
+});
+
+// 201 Created with location header
+app.MapPost("/users", async (CreateUserRequest request, ICreateUser createUser) =>
+{
+    var result = await createUser.ExecuteAsync(request);
+    return result.ToCreatedResult(user => $"/users/{user.Id}");
+});
+
+// 204 No Content for updates/deletes
+app.MapPut("/users/{id}", async (int id, UpdateUserRequest request, IUpdateUser updateUser) =>
+{
+    var result = await updateUser.ExecuteAsync(id, request);
+    return result.ToNoContentResult();
+});
+
+// Errors automatically convert to appropriate ProblemDetails responses:
+// - ValidationError → 400 with validation details
+// - NotFoundError → 404 with resource info
+// - UnauthorizedError → 401
+// - ConflictError → 409
+// - InternalError → 500
+```
+
+### Extension Methods
+
+**Option Extensions:**
+- `ToOption<T>()` - Convert nullable types to Option
+- `FirstOrNone<T>()` - Safe First that returns Option
+- `SingleOrNone<T>()` - Safe Single that returns Option
+- `LastOrNone<T>()` - Safe Last that returns Option
+- `Choose<T>()` - Filter None values from `IEnumerable<Option<T>>`
+- `ChooseMap<T, R>()` - Map and filter in one step
+- `Flatten<T>()` - Flatten nested Options
+
+**Result Extensions:**
+- `ToResult<T>()` - Wrap function execution in Result (catches exceptions)
+- `ToResultAsync<T>()` - Async version
+- `Combine<T>()` - Combine multiple Results (fails on first failure)
+- `CollectErrors<T>()` - Collect all ValidationErrors
+- `Choose<T>()` - Filter failures and unwrap successes
+- `Partition<T>()` - Split into (successes, failures) tuple
+
+### Best Practices
+
+1. **Always use Option for nullable domain models:**
+   ```csharp
+   // DON'T
+   public string? MiddleName { get; set; }
+   
+   // DO
+   public Option<string> MiddleName { get; set; }
+   ```
+
+2. **Chain operations with Bind/Map:**
+   ```csharp
+   return GetUserById(id)
+       .Bind(user => ValidateUser(user))
+       .Bind(user => UpdateUser(user))
+       .Map(user => new UserDto(user));
+   ```
+
+3. **Use LINQ query syntax for readability:**
+   ```csharp
+   var result = from user in GetUserById(id)
+                from validation in ValidateUser(user)
+                from updated in UpdateUser(validation)
+                select new UserDto(updated);
+   ```
+
+4. **Avoid GetValueOrThrow - prefer Match:**
+   ```csharp
+   // DON'T
+   var user = result.GetValueOrThrow();  // Defeats the purpose
+   
+   // DO
+   var userName = result.Match(
+       success: u => u.Name,
+       failure: _ => "Unknown"
+   );
+   ```
+
+5. **Use appropriate Error types:**
+   - Domain validation → `ValidationError`
+   - Resource not found → `NotFoundError`
+   - Auth failures → `UnauthorizedError` or `ForbiddenError`
+   - External API failures → `ExternalServiceError`
+   - Unexpected errors → `InternalError` (last resort)
 
 ## Blazor Server
 

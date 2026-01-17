@@ -1,6 +1,7 @@
 using DevQualX.Application.Weather;
 using DevQualX.Domain.Models;
 using DevQualX.Domain.Services;
+using DevQualX.Functional;
 using DevQualX.Web.Components.Pages;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,7 @@ public class WeatherPageShould : Bunit.TestContext
         var cut = RenderComponent<Weather>();
 
         // Assert
-        cut.MarkupMatches("<h1>Weather</h1><p>This component demonstrates showing data.</p><p><em>Loading...</em></p>");
+        cut.MarkupMatches("<h1>Weather</h1><p>This component demonstrates showing data with functional error handling.</p><p><em>Loading...</em></p>");
     }
 
     [Test]
@@ -38,8 +39,11 @@ public class WeatherPageShould : Bunit.TestContext
             new WeatherForecast(new DateOnly(2026, 1, 20), 20, "Mild"),
             new WeatherForecast(new DateOnly(2026, 1, 21), 22, "Warm")
         };
+        
+        // Return a Success Result
+        Result<WeatherForecast[], Error> successResult = testForecasts;
         A.CallTo(() => fakeWeatherService.GetForecastAsync(A<int>._, A<CancellationToken>._))
-            .Returns(testForecasts);
+            .Returns(Task.FromResult(successResult));
 
         Services.AddSingleton(fakeWeatherService);
         Services.AddSingleton<IGetWeatherForecast, GetWeatherForecast>();

@@ -2,19 +2,26 @@
 @attribute [StreamRendering]
 @using DevQualX.Application.Weather
 @using DevQualX.Domain.Models
+@using DevQualX.Functional
 @inject IGetWeatherForecast GetWeatherForecastService
 
 <PageTitle>Weather</PageTitle>
 
 <h1>Weather</h1>
 
-<p>This component demonstrates showing data.</p>
+<p>This component demonstrates showing data with functional error handling.</p>
 
-@if (forecasts == null)
+@if (isLoading)
 {
     <p><em>Loading...</em></p>
 }
-else
+else if (errorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Error:</strong> @errorMessage
+    </div>
+}
+else if (forecasts != null)
 {
     <table class="table">
         <thead>
@@ -41,12 +48,22 @@ else
 
 @code {
     private WeatherForecast[]? forecasts;
+    private string? errorMessage;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         // Simulate asynchronous loading to demonstrate streaming rendering
         await Task.Delay(500);
 
-        forecasts = await GetWeatherForecastService.ExecuteAsync(maxItems: 5);
+        // Call the application service which returns Result<WeatherForecast[], Error>
+        var result = await GetWeatherForecastService.ExecuteAsync(maxItems: 5);
+
+        // Use Tap and TapError to handle success or failure as side effects
+        result
+            .Tap(data => forecasts = data)
+            .TapError(error => errorMessage = error.Message);
+
+        isLoading = false;
     }
 }

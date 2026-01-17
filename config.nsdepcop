@@ -13,6 +13,14 @@
     <Allowed From="*" To="Microsoft.AspNetCore.*" />
     
     <!-- ========================================== -->
+    <!-- FUNCTIONAL LIBRARY (FOUNDATION LAYER) -->
+    <!-- ========================================== -->
+    
+    <!-- ALL projects can reference Functional (foundation layer) -->
+    <Allowed From="DevQualX.*" To="DevQualX.Functional.*" />
+    <AllowedAssembly From="*" To="DevQualX.Functional" />
+    
+    <!-- ========================================== -->
     <!-- DOMAIN LAYER INTERNAL RULES -->
     <!-- ========================================== -->
     
