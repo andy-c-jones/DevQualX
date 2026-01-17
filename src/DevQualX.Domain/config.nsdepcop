@@ -3,4 +3,13 @@
     <!-- Domain Layer: Core of the application -->
     <!-- Should have NO dependencies on other DevQualX projects -->
     <!-- Only system libraries and framework dependencies allowed -->
+    
+    <!-- Allow Infrastructure namespace to reference Models namespace -->
+    <Allowed From="DevQualX.Domain.Infrastructure" To="DevQualX.Domain.Models" />
+    
+    <!-- Allow Services namespace to reference Models namespace -->
+    <Allowed From="DevQualX.Domain.Services" To="DevQualX.Domain.Models" />
+    
+    <!-- Allow Data namespace to reference Models namespace -->
+    <Allowed From="DevQualX.Domain.Data" To="DevQualX.Domain.Models" />
 </NsDepCopConfig>

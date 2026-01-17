@@ -1,3 +1,4 @@
+using DevQualX.Application.Reports;
 using DevQualX.Application.Weather;
 using DevQualX.Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,8 @@ public static class ServiceCollectionExtensions
     {
         // Register application services (IDD pattern - transient or scoped)
         services.AddScoped<IGetWeatherForecast, GetWeatherForecast>();
+        services.AddScoped<IUploadReport, UploadReport>();
+        services.AddScoped<IProcessReport, ProcessReport>();
 
         return services;
     }

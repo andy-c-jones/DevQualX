@@ -2,4 +2,10 @@
 <NsDepCopConfig InheritanceDepth="2" IsEnabled="true">
     <!-- Infrastructure Layer: Third-party adapters -->
     <!-- Can only reference Domain layer (enforced in master config) -->
+    
+    <!-- Allow Azure SDK namespaces -->
+    <Allowed From="DevQualX.Infrastructure.Adapters" To="Azure.*" />
+    
+    <!-- Allow Infrastructure root to reference Adapters -->
+    <Allowed From="DevQualX.Infrastructure" To="DevQualX.Infrastructure.Adapters" />
 </NsDepCopConfig>

@@ -38,11 +38,17 @@
     <!-- Api can reference Application and its children -->
     <Allowed From="DevQualX.Api" To="DevQualX.Application.*" />
     <Allowed From="DevQualX.Api" To="DevQualX.Domain.*" />
+    <Allowed From="DevQualX.Api" To="DevQualX.Infrastructure" />
     
     <!-- Web can reference Application and its children -->
     <Allowed From="DevQualX.Web" To="DevQualX.Application.*" />
     <Allowed From="DevQualX.Web" To="DevQualX.Domain.*" />
     <Allowed From="DevQualX.Web" To="DevQualX.Web.*" />
+    
+    <!-- Worker can reference Application and Infrastructure -->
+    <Allowed From="DevQualX.Worker" To="DevQualX.Application.*" />
+    <Allowed From="DevQualX.Worker" To="DevQualX.Domain.*" />
+    <Allowed From="DevQualX.Worker" To="DevQualX.Infrastructure" />
     
     <!-- ========================================== -->
     <!-- CLEAN ARCHITECTURE RULES -->
@@ -90,6 +96,9 @@
     <AllowedAssembly From="*" To="YamlDotNet" />
     <AllowedAssembly From="*" To="Fractions" />
     
+    <!-- Allow Azure SDK assemblies -->
+    <AllowedAssembly From="*" To="Azure.*" />
+    
     <!-- Application can reference Domain -->
     <AllowedAssembly From="DevQualX.Application" To="DevQualX.Domain" />
     
@@ -99,17 +108,23 @@
     <!-- Infrastructure can reference Domain -->
     <AllowedAssembly From="DevQualX.Infrastructure" To="DevQualX.Domain" />
     
-    <!-- Api can reference Application (and transitively Domain) -->
+    <!-- Api can reference Application, Domain, Infrastructure -->
     <AllowedAssembly From="DevQualX.Api" To="DevQualX.Application" />
     <AllowedAssembly From="DevQualX.Api" To="DevQualX.Domain" />
     <AllowedAssembly From="DevQualX.Api" To="DevQualX.Data" />
     <AllowedAssembly From="DevQualX.Api" To="DevQualX.Infrastructure" />
     <AllowedAssembly From="DevQualX.Api" To="DevQualX.ServiceDefaults" />
     
-    <!-- Web can reference Application (and transitively Domain) -->
+    <!-- Web can reference Application and Domain -->
     <AllowedAssembly From="DevQualX.Web" To="DevQualX.Application" />
     <AllowedAssembly From="DevQualX.Web" To="DevQualX.Domain" />
     <AllowedAssembly From="DevQualX.Web" To="DevQualX.ServiceDefaults" />
+    
+    <!-- Worker can reference Application, Domain, Infrastructure -->
+    <AllowedAssembly From="DevQualX.Worker" To="DevQualX.Application" />
+    <AllowedAssembly From="DevQualX.Worker" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.Worker" To="DevQualX.Infrastructure" />
+    <AllowedAssembly From="DevQualX.Worker" To="DevQualX.ServiceDefaults" />
     
     <!-- Disallow Data and Infrastructure from referencing each other -->
     <DisallowedAssembly From="DevQualX.Data" To="DevQualX.Infrastructure" />

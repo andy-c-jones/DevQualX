@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- Worker inherits from master config -->
+    
+    <!-- Allow Azure SDK namespaces -->
+    <Allowed From="DevQualX.Worker" To="Azure.*" />
+</NsDepCopConfig>
