@@ -1,0 +1,6 @@
+<Solution>
+    <Project Path="src/DevQualX.ApiService/DevQualX.ApiService.csproj" />
+    <Project Path="src/DevQualX.AppHost/DevQualX.AppHost.csproj" />
+    <Project Path="src/DevQualX.ServiceDefaults/DevQualX.ServiceDefaults.csproj" />
+    <Project Path="src/DevQualX.Web/DevQualX.Web.csproj" />
+</Solution>
