@@ -26,9 +26,12 @@ var storage = builder.AddAzureStorage("storage")
 
 var blobs = storage.AddBlobs("blobs");
 
-// Add Azure Service Bus emulator
+// Add Azure Service Bus emulator with configuration file
 var messaging = builder.AddAzureServiceBus("messaging")
-    .RunAsEmulator();
+    .RunAsEmulator(emulator =>
+    {
+        emulator.WithConfigurationFile("./messaging/Config.json");
+    });
 
 // Configure API service
 var apiService = builder.AddProject<Projects.DevQualX_Api>("apiservice")
