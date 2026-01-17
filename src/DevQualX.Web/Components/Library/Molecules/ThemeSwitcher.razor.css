@@ -1,0 +1,63 @@
+/* Theme Switcher Container */
+.theme-switcher {
+    display: inline-flex;
+}
+
+/* Theme Switcher Button */
+.theme-switcher__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-gray-700);
+    background-color: var(--color-white);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.theme-switcher__button:hover {
+    background-color: var(--color-gray-50);
+    border-color: var(--color-gray-400);
+    color: var(--color-gray-900);
+}
+
+.theme-switcher__button:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-color: var(--color-primary);
+}
+
+.theme-switcher__button:active {
+    transform: scale(0.95);
+}
+
+/* Theme Switcher Icon */
+.theme-switcher__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* Theme Switcher Label */
+.theme-switcher__label {
+    white-space: nowrap;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .theme-switcher__button {
+        color: var(--color-gray-300);
+        background-color: var(--color-gray-800);
+        border-color: var(--color-gray-700);
+    }
+    
+    .theme-switcher__button:hover {
+        background-color: var(--color-gray-700);
+        border-color: var(--color-gray-600);
+        color: var(--color-gray-100);
+    }
+}

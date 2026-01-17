@@ -545,6 +545,398 @@ else
 }
 ```
 
+## Component Library
+
+DevQualX uses a **custom component library** built on static-first principles with progressive enhancement. Components are organized using Atomic Design principles.
+
+### Component Library Structure
+
+```
+src/DevQualX.Web/
+├── Components/
+│   └── Library/
+│       ├── Atoms/              # Basic building blocks
+│       │   ├── Button.razor
+│       │   ├── Badge.razor
+│       │   ├── Card.razor
+│       │   ├── TextInput.razor
+│       │   ├── Switch.razor
+│       │   ├── Tabs.razor
+│       │   └── *.razor.css     # Scoped CSS files
+│       └── Molecules/          # Composed components
+│           ├── Pagination.razor
+│           ├── ThemeSwitcher.razor
+│           └── *.razor.css
+├── wwwroot/
+│   ├── styles/
+│   │   ├── core/
+│   │   │   ├── variables.css   # CSS custom properties
+│   │   │   ├── reset.css       # Minimal CSS reset
+│   │   │   ├── typography.css  # Typography system
+│   │   │   └── utilities.css   # Utility classes
+│   │   ├── layout/
+│   │   │   ├── flex.css        # Flexbox utilities
+│   │   │   └── grid.css        # Grid utilities
+│   │   └── main.css            # Main entry point
+│   └── js/
+│       ├── validation.js       # Form validation enhancement
+│       ├── tabs.js             # Tab navigation enhancement
+│       └── theme.js            # Theme switching
+```
+
+### Component Library Principles
+
+**CRITICAL: All new components MUST follow these principles:**
+
+#### 1. **Static-First Rendering**
+- Components MUST work with static SSR (no `@rendermode` by default)
+- Use `@attribute [StreamRendering]` for pages that load data asynchronously to enable progressive rendering
+- Only use `@rendermode InteractiveServer` when absolutely necessary (real-time updates, complex client interactions)
+- Progressive enhancement: base functionality works without JavaScript, enhanced with JS
+
+**Example:**
+```razor
+@namespace DevQualX.Web.Components.Library.Atoms
+
+<button 
+    type="@Type"
+    class="btn btn--@Variant.ToString().ToLowerInvariant() @Class"
+    disabled="@Disabled"
+    @onclick="OnClick"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Default;
+    [Parameter] public string Type { get; set; } = "button";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] 
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}
+```
+
+#### 2. **Type-Safe Component APIs**
+- Use C# enums for variants, sizes, types (never magic strings)
+- Use `[EditorRequired]` and `required` for mandatory parameters
+- Use primary constructors for dependency injection
+- Always provide `Class` and `AdditionalAttributes` parameters for extensibility
+
+**Example:**
+```csharp
+public enum ButtonVariant
+{
+    Default,
+    Primary,
+    Secondary,
+    Danger,
+    Ghost,
+    Link
+}
+
+public enum ButtonSize
+{
+    Sm,
+    Md,
+    Lg
+}
+```
+
+#### 3. **Scoped CSS with BEM Naming**
+- Every component has a `.razor.css` file with scoped styles
+- Use BEM (Block Element Modifier) naming: `.component__element--modifier`
+- Use CSS custom properties from `/wwwroot/styles/core/variables.css`
+- Never use inline styles or `<style>` tags in components
+
+**Example (Button.razor.css):**
+```css
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+}
+
+.btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.btn__spinner {
+    width: 1rem;
+    height: 1rem;
+    animation: spin 1s linear infinite;
+}
+```
+
+#### 4. **Progressive Enhancement with JavaScript**
+- Base functionality works without JavaScript
+- JavaScript enhances UX (smooth transitions, keyboard navigation, etc.)
+- JavaScript files in `/wwwroot/js/` use vanilla JS (no frameworks)
+- Use IIFE pattern with namespace: `window.DevQualX.*`
+- Listen for Blazor enhanced navigation events
+- Always provide `init()` function for manual initialization
+
+**Example (tabs.js):**
+```javascript
+(function() {
+    'use strict';
+    
+    function initTabs() {
+        const tabContainers = document.querySelectorAll('[data-tabs]');
+        // Enhancement logic...
+    }
+    
+    // Initialize immediately
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTabs);
+    } else {
+        initTabs();
+    }
+    
+    // Reinitialize after Blazor enhanced navigation
+    if (window.Blazor) {
+        window.Blazor.addEventListener('enhancednavigation', initTabs);
+    }
+    
+    // Expose API
+    window.DevQualX = window.DevQualX || {};
+    window.DevQualX.tabs = { init: initTabs };
+})();
+```
+
+#### 5. **Accessibility-First**
+- Use semantic HTML elements
+- Include proper ARIA attributes (`role`, `aria-label`, `aria-controls`, etc.)
+- Support keyboard navigation (Tab, Enter, Space, Arrow keys, Home, End)
+- Ensure sufficient color contrast
+- Test with screen readers
+
+**Example:**
+```razor
+<button 
+    role="tab"
+    aria-selected="@IsActive.ToString().ToLowerInvariant()"
+    aria-controls="@PanelId"
+    tabindex="@(IsActive ? "0" : "-1")">
+    @ChildContent
+</button>
+```
+
+#### 6. **HTML5 Form Validation**
+- Use HTML5 validation attributes (`required`, `pattern`, `minlength`, `maxlength`, `min`, `max`, `type`)
+- Progressive enhancement with JavaScript for better UX (validate on blur, custom error messages)
+- Server-side validation is always required (never trust client-side validation)
+- Use `data-validation-*` attributes for custom error messages
+
+**Example:**
+```razor
+<input 
+    type="@Type.ToString().ToLowerInvariant()"
+    required="@Required"
+    minlength="@MinLength"
+    maxlength="@MaxLength"
+    pattern="@Pattern"
+    data-validation-required="@ValidationRequiredMessage"
+    data-validation-pattern="@ValidationPatternMessage" />
+```
+
+### Available Components
+
+**Atoms:**
+- `Button` - Multiple variants, sizes, loading state
+- `Badge` - Color variants with optional dot indicator
+- `Card` + `CardHeader`/`CardBody`/`CardFooter` - Container components
+- `TextInput` - Full HTML5 validation, all input types, helper text, error messages
+- `Switch` - Toggle switch with label support
+- `Tabs` + `TabButton`/`TabPanel` - Tab navigation with progressive enhancement
+
+**Molecules:**
+- `Pagination` - Server-side pagination with query parameters
+- `ThemeSwitcher` - Light/Dark/System theme switching
+
+**Component Showcase:**
+- Visit `/dev/components` to see live examples of all components
+
+### Custom CSS System
+
+DevQualX uses a **custom CSS foundation** (Bootstrap removed). Never add Bootstrap or other CSS frameworks.
+
+**CSS Variables (defined in `/wwwroot/styles/core/variables.css`):**
+```css
+/* Colors */
+--color-primary: #6366f1;      /* Indigo */
+--color-white: #ffffff;
+--color-gray-50: #f9fafb;
+--color-gray-100: #f3f4f6;
+/* ... more colors ... */
+
+/* Spacing (0.25rem = 4px increments) */
+--spacing-1: 0.25rem;   /* 4px */
+--spacing-2: 0.5rem;    /* 8px */
+--spacing-3: 0.75rem;   /* 12px */
+--spacing-4: 1rem;      /* 16px */
+/* ... more spacing ... */
+
+/* Typography */
+--font-size-xs: 0.75rem;    /* 12px */
+--font-size-sm: 0.875rem;   /* 14px */
+--font-size-base: 1rem;     /* 16px */
+/* ... more typography ... */
+
+/* Border Radius */
+--radius-sm: 0.25rem;   /* 4px */
+--radius-md: 0.375rem;  /* 6px */
+--radius-lg: 0.5rem;    /* 8px */
+/* ... more radius ... */
+
+/* Shadows */
+--shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+--shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+/* ... more shadows ... */
+
+/* Transitions */
+--transition-base: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+--transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+```
+
+**Utility Classes (available from `/wwwroot/styles/core/utilities.css` and `/wwwroot/styles/layout/*.css`):**
+- Spacing: `m-{size}`, `mt-{size}`, `p-{size}`, `px-{size}`, etc. (sizes: 0-12)
+- Display: `block`, `inline-block`, `flex`, `inline-flex`, `grid`, `hidden`
+- Flexbox: `flex`, `flex-col`, `items-center`, `justify-between`, `gap-{size}`
+- Grid: `grid`, `grid-cols-{count}`, `gap-{size}`, responsive variants
+- Typography: `text-{size}`, `font-{weight}`, `text-{align}`, `text-{color}`
+- Borders: `border`, `border-{side}`, `rounded-{size}`
+- Shadows: `shadow-{size}`
+
+**Responsive Breakpoints:**
+- `sm`: 640px
+- `md`: 768px
+- `lg`: 1024px
+- `xl`: 1280px
+- `2xl`: 1536px
+
+**Example usage:**
+```razor
+<div class="flex flex-col gap-4 p-6 md:flex-row md:gap-6">
+    <div class="flex-1">
+        <h2 class="text-2xl font-bold mb-4">Title</h2>
+        <p class="text-gray-600">Content</p>
+    </div>
+</div>
+```
+
+### Creating New Components
+
+When creating new components:
+
+1. **Choose the right level:**
+   - **Atoms**: Basic, single-purpose components (buttons, inputs, icons)
+   - **Molecules**: Composed components with multiple elements (forms, cards, menus)
+   - **Organisms**: Complex sections (headers, sidebars, data tables)
+
+2. **Follow the component template:**
+   ```razor
+   @namespace DevQualX.Web.Components.Library.Atoms
+   
+   <div class="component-name @Class" @attributes="AdditionalAttributes">
+       @ChildContent
+   </div>
+   
+   @code {
+       [Parameter] public RenderFragment? ChildContent { get; set; }
+       [Parameter] public string? Class { get; set; }
+       [Parameter(CaptureUnmatchedValues = true)] 
+       public Dictionary<string, object>? AdditionalAttributes { get; set; }
+   }
+   ```
+
+3. **Create scoped CSS file** (`ComponentName.razor.css`):
+   ```css
+   .component-name {
+       /* Base styles using CSS variables */
+   }
+   
+   .component-name__element {
+       /* Element styles */
+   }
+   
+   .component-name--modifier {
+       /* Modifier styles */
+   }
+   ```
+
+4. **Add progressive enhancement if needed** (`/wwwroot/js/component-name.js`)
+
+5. **Update `/dev/components` showcase page** with usage examples
+
+6. **Never use:**
+   - Inline styles
+   - `<style>` tags in components
+   - Magic strings for variants/sizes
+   - `@rendermode` unless absolutely necessary
+   - JavaScript frameworks (jQuery, React, etc.)
+   - CSS frameworks (Bootstrap, Tailwind, etc.)
+
+### StreamRendering for Pages
+
+Use `@attribute [StreamRendering]` on **pages** (not components) that load data asynchronously to enable progressive rendering:
+
+```razor
+@page "/products"
+@attribute [StreamRendering]
+@inject IGetProducts GetProducts
+
+<h1>Products</h1>
+
+@if (products == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="grid grid-cols-3 gap-4">
+        @foreach (var product in products)
+        {
+            <Card>
+                <CardBody>
+                    <h3>@product.Name</h3>
+                    <p>@product.Price.ToString("C")</p>
+                </CardBody>
+            </Card>
+        }
+    </div>
+}
+
+@code {
+    private Product[]? products;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // StreamRendering will render the "Loading..." state first,
+        // then update with the products once loaded
+        products = await GetProducts.ExecuteAsync();
+    }
+}
+```
+
+**When to use StreamRendering:**
+- Pages with slow data loading (database queries, API calls)
+- Pages where showing a loading state improves perceived performance
+- Pages with multiple async data sources
+
+**When NOT to use StreamRendering:**
+- On components (only use on pages)
+- When data loads instantly (< 100ms)
+- When you need data before rendering (use regular SSR)
+
 ## Build, Test, and Run Commands
 
 ### Building

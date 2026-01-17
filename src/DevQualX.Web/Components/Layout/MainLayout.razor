@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@using DevQualX.Web.Components.Library.Molecules
 
 <div class="page">
     <div class="sidebar">
@@ -11,6 +12,7 @@
                 <OrgSwitcher />
             </div>
             <div class="top-row-right">
+                <NotificationBell />
                 <UserMenu />
             </div>
         </div>
@@ -19,6 +21,8 @@
             @Body
         </article>
     </main>
+    
+    <ToastContainer />
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>

@@ -1,0 +1,43 @@
+/* Card Component Styles */
+
+.card {
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.card--default {
+  border: 1px solid var(--color-border-light);
+}
+
+.card--bordered {
+  border: 1px solid var(--color-border);
+}
+
+.card--elevated {
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-md);
+}
+
+.card__header {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.card__header:last-child {
+  border-bottom: none;
+}
+
+.card__body {
+  padding: var(--spacing-6);
+}
+
+.card__footer {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-top: 1px solid var(--color-border-light);
+  background-color: var(--color-gray-50);
+}
+
+.card__footer:first-child {
+  border-top: none;
+}

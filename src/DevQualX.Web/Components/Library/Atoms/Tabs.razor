@@ -1,0 +1,42 @@
+@namespace DevQualX.Web.Components.Library.Atoms
+
+<div class="tabs @Class" data-tabs @attributes="AdditionalAttributes">
+    <div class="tabs__list" role="tablist" aria-label="@AriaLabel">
+        @TabHeaders
+    </div>
+    <div class="tabs__panels">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Tab panel content (use TabPanel components).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    
+    /// <summary>
+    /// Tab header content (use TabButton components).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? TabHeaders { get; set; }
+    
+    /// <summary>
+    /// Accessible label for the tab list.
+    /// </summary>
+    [Parameter]
+    public string AriaLabel { get; set; } = "Tabs";
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the tabs container.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the tabs container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

@@ -1,0 +1,172 @@
+@namespace DevQualX.Web.Components.Layout
+@using Microsoft.JSInterop
+@using DevQualX.Web.Components.Library.Atoms
+@using System.Text.Json
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="toast-container @Class" @attributes="AdditionalAttributes">
+    @foreach (var toast in _activeToasts)
+    {
+        <Toast 
+            @key="toast.Id"
+            Id="@toast.Id"
+            Title="@toast.Title"
+            Message="@toast.Message"
+            Level="@toast.Level"
+            Type="@toast.Type"
+            RelativeTime="@toast.RelativeTime"
+            Dismissible="@toast.Dismissible"
+            Timeout="@toast.Timeout"
+            ElapsedTime="@toast.ElapsedTime"
+            Href="@toast.Href"
+            OnDismissed="@(() => HandleDismissed(toast.Id))" />
+    }
+</div>
+
+@code {
+    private List<ToastData> _activeToasts = new();
+    private PeriodicTimer? _timer;
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the toast container.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the toast container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Initialize the notification system
+                await JS.InvokeVoidAsync("eval", "window.DevQualX?.notifications?.init()");
+                
+                // Load initial active toasts
+                await LoadActiveToasts();
+                
+                // Poll for active toasts every 1 second
+                _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+                _ = Task.Run(async () =>
+                {
+                    while (await _timer.WaitForNextTickAsync())
+                    {
+                        await LoadActiveToasts();
+                    }
+                });
+            }
+            catch
+            {
+                // Silently fail if JavaScript not available
+            }
+        }
+    }
+    
+    private async Task LoadActiveToasts()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string>("eval", @"
+                JSON.stringify((window.DevQualX?.notifications?.getActive() || []).map(n => ({
+                    id: n.id,
+                    title: n.title,
+                    message: n.message,
+                    levelString: n.level,
+                    typeString: n.type,
+                    timestamp: n.timestamp,
+                    dismissible: n.dismissible,
+                    timeout: n.timeout,
+                    elapsedMs: n.elapsedMs || 0,
+                    href: n.href || null,
+                    relativeTime: window.DevQualX.notifications.formatRelativeTime(n.timestamp),
+                    elapsedTime: n.type === 'progress' ? window.DevQualX.notifications.formatElapsedTime(n.elapsedMs || 0) : ''
+                })))
+            ");
+            
+            var newToasts = JsonSerializer.Deserialize<List<ToastData>>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new List<ToastData>();
+            
+            // Only update if the list has changed
+            if (!ToastsEqual(_activeToasts, newToasts))
+            {
+                _activeToasts = newToasts;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch
+        {
+            // Silently fail
+        }
+    }
+    
+    private bool ToastsEqual(List<ToastData> list1, List<ToastData> list2)
+    {
+        if (list1.Count != list2.Count) return false;
+        
+        for (int i = 0; i < list1.Count; i++)
+        {
+            if (list1[i].Id != list2[i].Id) return false;
+        }
+        
+        return true;
+    }
+    
+    private async Task HandleDismissed(string id)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval", $"window.DevQualX?.notifications?.dismiss('{id}')");
+            _activeToasts.RemoveAll(t => t.Id == id);
+            StateHasChanged();
+        }
+        catch
+        {
+            // Silently fail
+        }
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        _timer?.Dispose();
+    }
+    
+    private class ToastData
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string LevelString { get; set; } = "info";
+        public string TypeString { get; set; } = "standard";
+        public long Timestamp { get; set; }
+        public bool Dismissible { get; set; } = true;
+        public int Timeout { get; set; }
+        public int ElapsedMs { get; set; }
+        public string? Href { get; set; }
+        public string RelativeTime { get; set; } = string.Empty;
+        public string ElapsedTime { get; set; } = string.Empty;
+        
+        // Map string level to ToastLevel enum
+        public ToastLevel Level => LevelString switch
+        {
+            "primary" => ToastLevel.Primary,
+            "secondary" => ToastLevel.Secondary,
+            "success" => ToastLevel.Success,
+            "danger" => ToastLevel.Danger,
+            "warning" => ToastLevel.Warning,
+            "info" => ToastLevel.Info,
+            _ => ToastLevel.Info
+        };
+        
+        // Map string type to ToastType enum
+        public ToastType Type => TypeString == "progress" ? ToastType.Progress : ToastType.Standard;
+    }
+}

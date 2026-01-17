@@ -1,0 +1,183 @@
+/* Table Container - Responsive wrapper with horizontal scroll on mobile */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Base Table Styles */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-900);
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+    .table {
+        color: var(--color-gray-100);
+    }
+}
+
+/* Table Header */
+.table thead {
+    background-color: var(--color-gray-50);
+    border-bottom: 2px solid var(--color-gray-200);
+}
+
+@media (prefers-color-scheme: dark) {
+    .table thead {
+        background-color: var(--color-gray-800);
+        border-bottom-color: var(--color-gray-700);
+    }
+}
+
+.table th {
+    padding: var(--spacing-3) var(--spacing-4);
+    text-align: left;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-700);
+    white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+    .table th {
+        color: var(--color-gray-300);
+    }
+}
+
+/* Table Body */
+.table td {
+    padding: var(--spacing-3) var(--spacing-4);
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+@media (prefers-color-scheme: dark) {
+    .table td {
+        border-bottom-color: var(--color-gray-700);
+    }
+}
+
+/* Remove border from last row */
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Density Variants */
+.table--compact th,
+.table--compact td {
+    padding: var(--spacing-2) var(--spacing-3);
+}
+
+.table--comfortable th,
+.table--comfortable td {
+    padding: var(--spacing-3) var(--spacing-4);
+}
+
+/* Striped Rows */
+.table--striped tbody tr:nth-child(even) {
+    background-color: var(--color-gray-50);
+}
+
+@media (prefers-color-scheme: dark) {
+    .table--striped tbody tr:nth-child(even) {
+        background-color: var(--color-gray-800);
+    }
+}
+
+/* Hoverable Rows */
+.table--hoverable tbody tr {
+    transition: background-color var(--transition-base);
+}
+
+.table--hoverable tbody tr:hover {
+    background-color: var(--color-gray-100);
+}
+
+@media (prefers-color-scheme: dark) {
+    .table--hoverable tbody tr:hover {
+        background-color: var(--color-gray-750);
+    }
+}
+
+/* Sortable Header (for future enhancement) */
+.table th[aria-sort] {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: var(--spacing-8);
+}
+
+.table th[aria-sort]:hover {
+    background-color: var(--color-gray-100);
+}
+
+@media (prefers-color-scheme: dark) {
+    .table th[aria-sort]:hover {
+        background-color: var(--color-gray-750);
+    }
+}
+
+/* Empty State */
+.table__empty {
+    padding: var(--spacing-12) var(--spacing-4);
+    text-align: center;
+    color: var(--color-gray-500);
+}
+
+@media (prefers-color-scheme: dark) {
+    .table__empty {
+        color: var(--color-gray-400);
+    }
+}
+
+/* Responsive: Stack on mobile (optional, can be enabled with class) */
+@media (max-width: 640px) {
+    .table--stacked thead {
+        display: none;
+    }
+    
+    .table--stacked tbody tr {
+        display: block;
+        margin-bottom: var(--spacing-4);
+        border: 1px solid var(--color-gray-200);
+        border-radius: var(--radius-md);
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .table--stacked tbody tr {
+            border-color: var(--color-gray-700);
+        }
+    }
+    
+    .table--stacked td {
+        display: block;
+        text-align: right;
+        padding: var(--spacing-2) var(--spacing-3);
+        border-bottom: 1px solid var(--color-gray-100);
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .table--stacked td {
+            border-bottom-color: var(--color-gray-800);
+        }
+    }
+    
+    .table--stacked td:last-child {
+        border-bottom: none;
+    }
+    
+    .table--stacked td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-gray-700);
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .table--stacked td::before {
+            color: var(--color-gray-300);
+        }
+    }
+}

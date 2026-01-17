@@ -1,0 +1,112 @@
+@namespace DevQualX.Web.Components.Library.Atoms
+@using Microsoft.AspNetCore.Components.Web
+
+<button 
+    type="@Type"
+    class="btn btn--@Variant.ToString().ToLowerInvariant() btn--@Size.ToString().ToLowerInvariant() @GetIconOnlyClass() @Class"
+    disabled="@Disabled"
+    @onclick="OnClick"
+    aria-label="@AriaLabel"
+    @attributes="AdditionalAttributes">
+    @if (Loading)
+    {
+        <span class="btn__spinner" aria-hidden="true"></span>
+    }
+    else
+    {
+        @if (LeadingIcon.HasValue)
+        {
+            <Icon Name="@LeadingIcon.Value" Class="btn__icon" />
+        }
+        @ChildContent
+        @if (TrailingIcon.HasValue)
+        {
+            <Icon Name="@TrailingIcon.Value" Class="btn__icon" />
+        }
+    }
+</button>
+
+@code {
+    /// <summary>
+    /// Button content.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    
+    /// <summary>
+    /// Button style variant (Default, Primary, Secondary, Danger, Ghost, Link).
+    /// </summary>
+    [Parameter]
+    public ButtonVariant Variant { get; set; } = ButtonVariant.Default;
+    
+    /// <summary>
+    /// Button size (Sm, Md, Lg).
+    /// </summary>
+    [Parameter]
+    public ButtonSize Size { get; set; } = ButtonSize.Md;
+    
+    /// <summary>
+    /// HTML button type attribute (button, submit, reset).
+    /// </summary>
+    [Parameter]
+    public string Type { get; set; } = "button";
+    
+    /// <summary>
+    /// Whether the button is disabled.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+    
+    /// <summary>
+    /// Whether the button is in a loading state.
+    /// </summary>
+    [Parameter]
+    public bool Loading { get; set; }
+    
+    /// <summary>
+    /// Icon to display on the left side of the button text.
+    /// </summary>
+    [Parameter]
+    public HeroIcon? LeadingIcon { get; set; }
+    
+    /// <summary>
+    /// Icon to display on the right side of the button text.
+    /// </summary>
+    [Parameter]
+    public HeroIcon? TrailingIcon { get; set; }
+    
+    /// <summary>
+    /// Accessible label for icon-only buttons (required when no ChildContent).
+    /// </summary>
+    [Parameter]
+    public string? AriaLabel { get; set; }
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the button.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Click event callback.
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the button.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    /// <summary>
+    /// Returns CSS class for icon-only buttons.
+    /// </summary>
+    private string GetIconOnlyClass()
+    {
+        var hasIcon = LeadingIcon.HasValue || TrailingIcon.HasValue;
+        var hasContent = ChildContent != null;
+        
+        return hasIcon && !hasContent ? "btn--icon-only" : "";
+    }
+}

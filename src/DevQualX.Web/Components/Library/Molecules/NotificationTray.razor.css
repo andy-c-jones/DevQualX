@@ -1,0 +1,258 @@
+.notification-tray {
+    position: absolute;
+    top: calc(100% + var(--spacing-2));
+    right: 0;
+    width: 360px;
+    max-height: 400px;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    z-index: 50;
+}
+
+.notification-tray__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-4);
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.notification-tray__title {
+    margin: 0;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-900);
+}
+
+.notification-tray__clear-btn {
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.notification-tray__clear-btn:hover {
+    background-color: var(--color-primary-50);
+}
+
+.notification-tray__clear-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.notification-tray__body {
+    max-height: 352px;
+    overflow-y: auto;
+}
+
+.notification-tray__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-8) var(--spacing-4);
+    text-align: center;
+}
+
+.notification-tray__empty-icon {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: var(--spacing-3);
+    color: var(--color-gray-400);
+}
+
+.notification-tray__empty-text {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-500);
+}
+
+.notification-tray__item {
+    border-bottom: 1px solid var(--color-gray-100);
+    transition: background-color var(--transition-base);
+}
+
+.notification-tray__item:last-child {
+    border-bottom: none;
+}
+
+.notification-tray__item:hover {
+    background-color: var(--color-gray-50);
+}
+
+.notification-tray__item--unread {
+    background-color: var(--color-primary-50);
+}
+
+.notification-tray__item--unread:hover {
+    background-color: var(--color-primary-100);
+}
+
+.notification-tray__item-content {
+    padding: var(--spacing-3) var(--spacing-4);
+}
+
+.notification-tray__item-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-1);
+}
+
+.notification-tray__item-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.notification-tray__item-icon--success {
+    color: var(--color-green-500);
+}
+
+.notification-tray__item-icon--danger {
+    color: var(--color-red-500);
+}
+
+.notification-tray__item-icon--warning {
+    color: var(--color-yellow-500);
+}
+
+.notification-tray__item-icon--info,
+.notification-tray__item-icon--primary,
+.notification-tray__item-icon--secondary {
+    color: var(--color-blue-500);
+}
+
+.notification-tray__item-title {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-gray-900);
+}
+
+.notification-tray__item--unread .notification-tray__item-title {
+    font-weight: var(--font-weight-semibold);
+}
+
+.notification-tray__item-time {
+    font-size: var(--font-size-xs);
+    color: var(--color-gray-500);
+    flex-shrink: 0;
+}
+
+.notification-tray__item-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--color-gray-400);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    flex-shrink: 0;
+}
+
+.notification-tray__item-remove:hover {
+    background-color: var(--color-gray-200);
+    color: var(--color-gray-600);
+}
+
+.notification-tray__item-remove:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.notification-tray__item-remove-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.notification-tray__item-message {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-600);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .notification-tray {
+        background-color: var(--color-gray-900);
+        border-color: var(--color-gray-700);
+    }
+    
+    .notification-tray__header {
+        border-bottom-color: var(--color-gray-700);
+    }
+    
+    .notification-tray__title {
+        color: var(--color-gray-100);
+    }
+    
+    .notification-tray__clear-btn {
+        color: var(--color-primary-400);
+    }
+    
+    .notification-tray__clear-btn:hover {
+        background-color: var(--color-gray-800);
+    }
+    
+    .notification-tray__empty-icon {
+        color: var(--color-gray-600);
+    }
+    
+    .notification-tray__empty-text {
+        color: var(--color-gray-400);
+    }
+    
+    .notification-tray__item {
+        border-bottom-color: var(--color-gray-800);
+    }
+    
+    .notification-tray__item:hover {
+        background-color: var(--color-gray-800);
+    }
+    
+    .notification-tray__item--unread {
+        background-color: var(--color-gray-800);
+    }
+    
+    .notification-tray__item--unread:hover {
+        background-color: var(--color-gray-750);
+    }
+    
+    .notification-tray__item-title {
+        color: var(--color-gray-100);
+    }
+    
+    .notification-tray__item-time {
+        color: var(--color-gray-400);
+    }
+    
+    .notification-tray__item-remove {
+        color: var(--color-gray-500);
+    }
+    
+    .notification-tray__item-remove:hover {
+        background-color: var(--color-gray-700);
+        color: var(--color-gray-300);
+    }
+    
+    .notification-tray__item-message {
+        color: var(--color-gray-300);
+    }
+}

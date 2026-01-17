@@ -1,0 +1,31 @@
+@namespace DevQualX.Web.Components.Library.Atoms
+
+<div class="card card--@Variant.ToString().ToLowerInvariant() @Class" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Card content (use CardHeader, CardBody, CardFooter components).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    
+    /// <summary>
+    /// Card style variant (Default, Bordered, Elevated).
+    /// </summary>
+    [Parameter]
+    public CardVariant Variant { get; set; } = CardVariant.Default;
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the card.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the card.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

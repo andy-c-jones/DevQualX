@@ -1,0 +1,60 @@
+.notification-bell {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-bell__button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-2);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-gray-600);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.notification-bell__button:hover {
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-900);
+}
+
+.notification-bell__button:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.notification-bell__icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.notification-bell__badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(25%, -25%);
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 var(--spacing-1);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.25rem;
+    text-align: center;
+    pointer-events: none;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .notification-bell__button {
+        color: var(--color-gray-400);
+    }
+    
+    .notification-bell__button:hover {
+        background-color: var(--color-gray-800);
+        color: var(--color-gray-100);
+    }
+}

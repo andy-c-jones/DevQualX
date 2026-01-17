@@ -1,0 +1,11 @@
+/* DevQualX CSS System */
+
+/* Core styles */
+@import 'core/variables.css';
+@import 'core/reset.css';
+@import 'core/typography.css';
+@import 'core/utilities.css';
+
+/* Layout utilities */
+@import 'layout/flex.css';
+@import 'layout/grid.css';

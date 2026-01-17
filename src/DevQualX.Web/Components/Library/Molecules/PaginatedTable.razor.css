@@ -1,0 +1,107 @@
+/* Paginated Table Container */
+.paginated-table {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+/* Loading State */
+.paginated-table__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16) var(--spacing-4);
+    gap: var(--spacing-4);
+}
+
+.paginated-table__spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid var(--color-gray-200);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+    .paginated-table__spinner {
+        border-color: var(--color-gray-700);
+        border-top-color: var(--color-primary);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.paginated-table__loading-text {
+    color: var(--color-gray-600);
+    font-size: var(--font-size-sm);
+}
+
+@media (prefers-color-scheme: dark) {
+    .paginated-table__loading-text {
+        color: var(--color-gray-400);
+    }
+}
+
+/* Empty State */
+.paginated-table__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16) var(--spacing-4);
+    gap: var(--spacing-3);
+    border: 1px dashed var(--color-gray-300);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-gray-50);
+}
+
+@media (prefers-color-scheme: dark) {
+    .paginated-table__empty {
+        border-color: var(--color-gray-700);
+        background-color: var(--color-gray-800);
+    }
+}
+
+.paginated-table__empty-icon {
+    width: 3rem;
+    height: 3rem;
+    color: var(--color-gray-400);
+}
+
+@media (prefers-color-scheme: dark) {
+    .paginated-table__empty-icon {
+        color: var(--color-gray-500);
+    }
+}
+
+.paginated-table__empty-text {
+    color: var(--color-gray-600);
+    font-size: var(--font-size-base);
+    margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .paginated-table__empty-text {
+        color: var(--color-gray-400);
+    }
+}
+
+/* Pagination Section */
+.paginated-table__pagination {
+    display: flex;
+    justify-content: center;
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--color-gray-200);
+}
+
+@media (prefers-color-scheme: dark) {
+    .paginated-table__pagination {
+        border-top-color: var(--color-gray-700);
+    }
+}

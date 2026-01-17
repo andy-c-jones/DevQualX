@@ -1,0 +1,161 @@
+@namespace DevQualX.Web.Components.Library.Atoms
+
+<div class="toast toast--@Level.ToString().ToLowerInvariant() @(Type == ToastType.Progress ? "toast--progress" : "") @Class"
+     data-toast-id="@Id"
+     @attributes="AdditionalAttributes">
+    
+    <div class="toast__header">
+        <div class="toast__header-left">
+            @if (Type == ToastType.Progress)
+            {
+                <div class="toast__spinner" aria-hidden="true"></div>
+            }
+            else
+            {
+                <Icon Name="@GetIconForLevel()" Class="toast__icon" AriaLabel="@Level.ToString()" />
+            }
+            <h4 class="toast__title">@Title</h4>
+        </div>
+        <div class="toast__header-right">
+            <span class="toast__timestamp">@RelativeTime</span>
+            @if (Dismissible)
+            {
+                <button type="button" 
+                        class="toast__dismiss" 
+                        aria-label="Dismiss notification"
+                        @onclick="OnDismiss">
+                    <Icon Name="HeroIcon.XMark" />
+                </button>
+            }
+        </div>
+    </div>
+    
+    <div class="toast__body">
+        @if (Type == ToastType.Progress)
+        {
+            <div class="toast__progress-info">
+                <span class="toast__progress-label">Elapsed time:</span>
+                <span class="toast__progress-time">@ElapsedTime</span>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <p class="toast__message">@Message</p>
+        }
+        @if (!string.IsNullOrWhiteSpace(Href) && Type != ToastType.Progress)
+        {
+            <a href="@Href" class="toast__link">
+                @(Href.Contains("download") ? "Download result" : "View details")
+                <Icon Name="HeroIcon.ArrowRight" Class="toast__link-icon" />
+            </a>
+        }
+    </div>
+    
+    @if (Timeout > 0 && Type != ToastType.Progress)
+    {
+        <div class="toast__countdown" style="animation-duration: @(Timeout)ms"></div>
+    }
+    else
+    {
+        <div class="toast__accent"></div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Unique notification ID.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Id { get; set; }
+    
+    /// <summary>
+    /// Toast title.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+    
+    /// <summary>
+    /// Toast message body.
+    /// </summary>
+    [Parameter]
+    public string? Message { get; set; }
+    
+    /// <summary>
+    /// Toast severity level.
+    /// </summary>
+    [Parameter]
+    public ToastLevel Level { get; set; } = ToastLevel.Info;
+    
+    /// <summary>
+    /// Toast type (standard or progress).
+    /// </summary>
+    [Parameter]
+    public ToastType Type { get; set; } = ToastType.Standard;
+    
+    /// <summary>
+    /// Relative timestamp (e.g., "just now", "5m ago").
+    /// </summary>
+    [Parameter]
+    public string RelativeTime { get; set; } = "just now";
+    
+    /// <summary>
+    /// Whether the toast can be manually dismissed.
+    /// </summary>
+    [Parameter]
+    public bool Dismissible { get; set; } = true;
+    
+    /// <summary>
+    /// Auto-dismiss timeout in milliseconds (0 = no timeout).
+    /// </summary>
+    [Parameter]
+    public int Timeout { get; set; }
+    
+    /// <summary>
+    /// Elapsed time for progress toasts (formatted as MM:SS).
+    /// </summary>
+    [Parameter]
+    public string ElapsedTime { get; set; } = "00:00";
+    
+    /// <summary>
+    /// Optional href for completed progress toasts (download or navigate).
+    /// </summary>
+    [Parameter]
+    public string? Href { get; set; }
+    
+    /// <summary>
+    /// Callback when toast is dismissed.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnDismissed { get; set; }
+    
+    /// <summary>
+    /// Additional CSS classes.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    private HeroIcon GetIconForLevel() => Level switch
+    {
+        ToastLevel.Primary => HeroIcon.InformationCircle,
+        ToastLevel.Secondary => HeroIcon.InformationCircle,
+        ToastLevel.Success => HeroIcon.CheckCircle,
+        ToastLevel.Danger => HeroIcon.XCircle,
+        ToastLevel.Warning => HeroIcon.ExclamationTriangle,
+        ToastLevel.Info => HeroIcon.InformationCircle,
+        _ => HeroIcon.InformationCircle
+    };
+    
+    private async Task OnDismiss()
+    {
+        if (OnDismissed.HasDelegate)
+        {
+            await OnDismissed.InvokeAsync(Id);
+        }
+    }
+}

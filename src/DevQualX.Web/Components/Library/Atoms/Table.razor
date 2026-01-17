@@ -1,0 +1,46 @@
+@namespace DevQualX.Web.Components.Library.Atoms
+
+<div class="table-container @Class">
+    <table class="table table--@Density.ToString().ToLowerInvariant() @(Striped ? "table--striped" : "") @(Hoverable ? "table--hoverable" : "")"
+           @attributes="AdditionalAttributes">
+        @ChildContent
+    </table>
+</div>
+
+@code {
+    /// <summary>
+    /// Table content (thead, tbody, tfoot).
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+    
+    /// <summary>
+    /// Table density (spacing).
+    /// </summary>
+    [Parameter]
+    public TableDensity Density { get; set; } = TableDensity.Comfortable;
+    
+    /// <summary>
+    /// Enable striped rows (alternating background colors).
+    /// </summary>
+    [Parameter]
+    public bool Striped { get; set; }
+    
+    /// <summary>
+    /// Enable hover effect on rows.
+    /// </summary>
+    [Parameter]
+    public bool Hoverable { get; set; } = true;
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the table container.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the table element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

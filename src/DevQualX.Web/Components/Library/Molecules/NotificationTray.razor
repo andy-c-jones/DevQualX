@@ -1,0 +1,180 @@
+@namespace DevQualX.Web.Components.Library.Molecules
+@using Microsoft.JSInterop
+@using DevQualX.Web.Components.Library.Atoms
+@using System.Text.Json
+@inject IJSRuntime JS
+
+<div class="notification-tray @Class" @attributes="AdditionalAttributes">
+    <div class="notification-tray__header">
+        <h3 class="notification-tray__title">Notifications</h3>
+        @if (_notifications.Count > 0)
+        {
+            <button 
+                type="button" 
+                class="notification-tray__clear-btn"
+                @onclick="ClearAll"
+                aria-label="Clear all notifications">
+                Clear All
+            </button>
+        }
+    </div>
+    
+    <div class="notification-tray__body">
+        @if (_notifications.Count == 0)
+        {
+            <div class="notification-tray__empty">
+                <Icon Name="HeroIcon.InformationCircle" Class="notification-tray__empty-icon" />
+                <p class="notification-tray__empty-text">No notifications</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var notification in _notifications)
+            {
+                <div class="notification-tray__item @GetItemClass(notification)" @key="notification.Id">
+                    <div class="notification-tray__item-content">
+                        <div class="notification-tray__item-header">
+                            <Icon Name="@GetIconForLevel(notification.Level)" Class="@GetIconClass(notification.Level)" />
+                            <span class="notification-tray__item-title">@notification.Title</span>
+                            <span class="notification-tray__item-time">@notification.RelativeTime</span>
+                            <button 
+                                type="button"
+                                class="notification-tray__item-remove"
+                                @onclick="() => RemoveNotification(notification.Id)"
+                                aria-label="Remove notification">
+                                <Icon Name="HeroIcon.XMark" Class="notification-tray__item-remove-icon" />
+                            </button>
+                        </div>
+                        <p class="notification-tray__item-message">@notification.Message</p>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private List<NotificationItem> _notifications = new();
+    
+    /// <summary>
+    /// Callback invoked when the tray should be closed.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the notification tray.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the notification tray.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadNotifications();
+            StateHasChanged();
+        }
+    }
+    
+    private async Task LoadNotifications()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string>("eval", @"
+                JSON.stringify((window.DevQualX?.notifications?.getAll() || []).map(n => ({
+                    id: n.id,
+                    title: n.title,
+                    message: n.message,
+                    level: n.level,
+                    timestamp: n.timestamp,
+                    read: n.read,
+                    relativeTime: window.DevQualX.notifications.formatRelativeTime(n.timestamp)
+                })))
+            ");
+            
+            _notifications = JsonSerializer.Deserialize<List<NotificationItem>>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new List<NotificationItem>();
+        }
+        catch
+        {
+            _notifications = new List<NotificationItem>();
+        }
+    }
+    
+    private async Task RemoveNotification(string id)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval", $"window.DevQualX?.notifications?.remove('{id}')");
+            _notifications.RemoveAll(n => n.Id == id);
+            StateHasChanged();
+        }
+        catch
+        {
+            // Silently fail
+        }
+    }
+    
+    private async Task ClearAll()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("eval", "window.DevQualX?.notifications?.clearAll()");
+            _notifications.Clear();
+            StateHasChanged();
+            
+            if (OnClose.HasDelegate)
+            {
+                await OnClose.InvokeAsync();
+            }
+        }
+        catch
+        {
+            // Silently fail
+        }
+    }
+    
+    private string GetItemClass(NotificationItem notification)
+    {
+        return notification.Read ? "" : "notification-tray__item--unread";
+    }
+    
+    private HeroIcon GetIconForLevel(string level)
+    {
+        return level.ToLowerInvariant() switch
+        {
+            "success" => HeroIcon.CheckCircle,
+            "danger" => HeroIcon.XCircle,
+            "warning" => HeroIcon.ExclamationTriangle,
+            "info" => HeroIcon.InformationCircle,
+            "primary" => HeroIcon.InformationCircle,
+            "secondary" => HeroIcon.InformationCircle,
+            _ => HeroIcon.InformationCircle
+        };
+    }
+    
+    private string GetIconClass(string level)
+    {
+        return $"notification-tray__item-icon notification-tray__item-icon--{level.ToLowerInvariant()}";
+    }
+    
+    private class NotificationItem
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string Level { get; set; } = "info";
+        public long Timestamp { get; set; }
+        public bool Read { get; set; }
+        public string RelativeTime { get; set; } = string.Empty;
+    }
+}

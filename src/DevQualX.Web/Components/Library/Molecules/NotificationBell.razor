@@ -1,0 +1,113 @@
+@namespace DevQualX.Web.Components.Library.Molecules
+@using Microsoft.JSInterop
+@using DevQualX.Web.Components.Library.Atoms
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="notification-bell @Class" @attributes="AdditionalAttributes">
+    <button 
+        type="button"
+        class="notification-bell__button"
+        @onclick="ToggleTray"
+        aria-label="@GetAriaLabel()"
+        aria-expanded="@IsOpen.ToString().ToLowerInvariant()"
+        aria-haspopup="true">
+        <Icon Name="HeroIcon.Bell" Class="notification-bell__icon" />
+        @if (_unreadCount > 0)
+        {
+            <Badge Variant="BadgeVariant.Danger" Class="notification-bell__badge">
+                @GetBadgeText()
+            </Badge>
+        }
+    </button>
+    
+    @if (IsOpen)
+    {
+        <NotificationTray OnClose="CloseTray" />
+    }
+</div>
+
+@code {
+    private int _unreadCount = 0;
+    private PeriodicTimer? _timer;
+    
+    /// <summary>
+    /// Whether the notification tray is open.
+    /// </summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the notification bell.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the notification bell.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await UpdateUnreadCount();
+            
+            // Poll for unread count every 5 seconds
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+            _ = Task.Run(async () =>
+            {
+                while (await _timer.WaitForNextTickAsync())
+                {
+                    await UpdateUnreadCount();
+                }
+            });
+        }
+    }
+    
+    private async Task UpdateUnreadCount()
+    {
+        try
+        {
+            _unreadCount = await JS.InvokeAsync<int>("eval", "window.DevQualX?.notifications?.getUnreadCount() || 0");
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // Silently fail
+        }
+    }
+    
+    private void ToggleTray()
+    {
+        IsOpen = !IsOpen;
+    }
+    
+    private void CloseTray()
+    {
+        IsOpen = false;
+    }
+    
+    private string GetBadgeText()
+    {
+        return _unreadCount > 99 ? "99+" : _unreadCount.ToString();
+    }
+    
+    private string GetAriaLabel()
+    {
+        if (_unreadCount == 0)
+        {
+            return "Notifications";
+        }
+        
+        var plural = _unreadCount == 1 ? "notification" : "notifications";
+        return $"{_unreadCount} unread {plural}";
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        _timer?.Dispose();
+    }
+}

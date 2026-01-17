@@ -1,0 +1,138 @@
+@namespace DevQualX.Web.Components.Library.Molecules
+@using DevQualX.Web.Components.Library.Atoms
+
+<div class="paginated-table @Class">
+    @if (IsLoading)
+    {
+        <div class="paginated-table__loading">
+            <div class="paginated-table__spinner"></div>
+            <p class="paginated-table__loading-text">@LoadingMessage</p>
+        </div>
+    }
+    else if (TotalItems == 0)
+    {
+        <div class="paginated-table__empty">
+            @if (EmptyContent != null)
+            {
+                @EmptyContent
+            }
+            else
+            {
+                <Icon Name="HeroIcon.InformationCircle" Class="paginated-table__empty-icon" />
+                <p class="paginated-table__empty-text">@EmptyMessage</p>
+            }
+        </div>
+    }
+    else
+    {
+        <Table Density="@Density" Striped="@Striped" Hoverable="@Hoverable">
+            @TableContent
+        </Table>
+        
+        @if (ShowPagination && TotalPages > 1)
+        {
+            <div class="paginated-table__pagination">
+                <Pagination 
+                    CurrentPage="@CurrentPage"
+                    TotalItems="@TotalItems"
+                    PageSize="@PageSize"
+                    BaseUrl="@BaseUrl"
+                    ShowPageInfo="@ShowPageInfo" />
+            </div>
+        }
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Table content (thead and tbody).
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required RenderFragment TableContent { get; set; }
+    
+    /// <summary>
+    /// Current page number (1-indexed).
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required int CurrentPage { get; set; }
+    
+    /// <summary>
+    /// Total number of items across all pages.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required int TotalItems { get; set; }
+    
+    /// <summary>
+    /// Number of items per page.
+    /// </summary>
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+    
+    /// <summary>
+    /// Base URL for pagination links (e.g., "/products").
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string BaseUrl { get; set; }
+    
+    /// <summary>
+    /// Table density (spacing).
+    /// </summary>
+    [Parameter]
+    public TableDensity Density { get; set; } = TableDensity.Comfortable;
+    
+    /// <summary>
+    /// Enable striped rows.
+    /// </summary>
+    [Parameter]
+    public bool Striped { get; set; } = true;
+    
+    /// <summary>
+    /// Enable hover effect on rows.
+    /// </summary>
+    [Parameter]
+    public bool Hoverable { get; set; } = true;
+    
+    /// <summary>
+    /// Show pagination controls.
+    /// </summary>
+    [Parameter]
+    public bool ShowPagination { get; set; } = true;
+    
+    /// <summary>
+    /// Show page info text (e.g., "Showing 1 to 10 of 100 items").
+    /// </summary>
+    [Parameter]
+    public bool ShowPageInfo { get; set; } = true;
+    
+    /// <summary>
+    /// Whether data is currently loading.
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; }
+    
+    /// <summary>
+    /// Loading message to display.
+    /// </summary>
+    [Parameter]
+    public string LoadingMessage { get; set; } = "Loading...";
+    
+    /// <summary>
+    /// Empty state message.
+    /// </summary>
+    [Parameter]
+    public string EmptyMessage { get; set; } = "No data available";
+    
+    /// <summary>
+    /// Custom empty state content.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? EmptyContent { get; set; }
+    
+    /// <summary>
+    /// Additional CSS classes.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    private int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
+}

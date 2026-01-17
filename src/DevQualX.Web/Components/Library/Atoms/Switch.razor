@@ -1,0 +1,91 @@
+@namespace DevQualX.Web.Components.Library.Atoms
+
+<div class="switch @Class">
+    <input 
+        type="checkbox"
+        id="@Id"
+        name="@Name"
+        class="switch__input"
+        checked="@Checked"
+        disabled="@Disabled"
+        @onchange="HandleChange"
+        @attributes="AdditionalAttributes" />
+    <label for="@Id" class="switch__label">
+        <span class="switch__slider"></span>
+        @if (!string.IsNullOrEmpty(Label))
+        {
+            <span class="switch__text">@Label</span>
+        }
+    </label>
+</div>
+
+@code {
+    private static int _nextId = 0;
+    private string _id = string.Empty;
+    
+    /// <summary>
+    /// Whether the switch is checked.
+    /// </summary>
+    [Parameter]
+    public bool Checked { get; set; }
+    
+    /// <summary>
+    /// Callback invoked when the checked state changes.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> CheckedChanged { get; set; }
+    
+    /// <summary>
+    /// Switch label text.
+    /// </summary>
+    [Parameter]
+    public string? Label { get; set; }
+    
+    /// <summary>
+    /// Switch name attribute (for forms).
+    /// </summary>
+    [Parameter]
+    public string? Name { get; set; }
+    
+    /// <summary>
+    /// Switch ID attribute. Auto-generated if not provided.
+    /// </summary>
+    [Parameter]
+    public string? Id { get; set; }
+    
+    /// <summary>
+    /// Whether the switch is disabled.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+    
+    /// <summary>
+    /// Additional CSS classes.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(Id))
+        {
+            _id = $"switch-{Interlocked.Increment(ref _nextId)}";
+        }
+        else
+        {
+            _id = Id;
+        }
+    }
+    
+    private async Task HandleChange(ChangeEventArgs e)
+    {
+        Checked = e.Value is bool value && value;
+        await CheckedChanged.InvokeAsync(Checked);
+    }
+}

@@ -1,0 +1,57 @@
+@namespace DevQualX.Web.Components.Library.Atoms
+
+<a 
+    href="#@PanelId"
+    class="tabs__button @(IsActive ? "tabs__button--active" : "") @Class"
+    role="tab"
+    aria-selected="@IsActive.ToString().ToLowerInvariant()"
+    aria-controls="@PanelId"
+    id="@TabId"
+    tabindex="@(IsActive ? "0" : "-1")"
+    @attributes="AdditionalAttributes">
+    @ChildContent
+</a>
+
+@code {
+    /// <summary>
+    /// Tab button content.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    
+    /// <summary>
+    /// ID of the panel this tab controls.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string PanelId { get; set; }
+    
+    /// <summary>
+    /// Unique ID for this tab button.
+    /// </summary>
+    [Parameter]
+    public string? TabId { get; set; }
+    
+    /// <summary>
+    /// Whether this tab is currently active.
+    /// </summary>
+    [Parameter]
+    public bool IsActive { get; set; }
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the tab button.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the tab button.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    protected override void OnParametersSet()
+    {
+        // Auto-generate TabId if not provided
+        TabId ??= $"tab-{PanelId}";
+    }
+}

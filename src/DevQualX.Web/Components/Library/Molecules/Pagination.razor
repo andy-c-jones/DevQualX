@@ -1,0 +1,214 @@
+@namespace DevQualX.Web.Components.Library.Molecules
+
+<nav class="pagination @Class" aria-label="@AriaLabel" @attributes="AdditionalAttributes">
+    @if (ShowPageInfo)
+    {
+        <div class="pagination__info">
+            Showing @FirstItemNumber to @LastItemNumber of @TotalItems items
+        </div>
+    }
+    
+    <ul class="pagination__list">
+        @* Previous button *@
+        <li class="pagination__item">
+            @if (CurrentPage > 1)
+            {
+                <a href="@GetPageUrl(CurrentPage - 1)" 
+                   class="pagination__link pagination__link--nav"
+                   aria-label="Go to previous page">
+                    <svg class="pagination__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                    Previous
+                </a>
+            }
+            else
+            {
+                <span class="pagination__link pagination__link--nav pagination__link--disabled" aria-disabled="true">
+                    <svg class="pagination__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                    Previous
+                </span>
+            }
+        </li>
+        
+        @* Page numbers *@
+        @foreach (var page in GetVisiblePages())
+        {
+            @if (page == -1)
+            {
+                <li class="pagination__item">
+                    <span class="pagination__ellipsis">...</span>
+                </li>
+            }
+            else
+            {
+                <li class="pagination__item">
+                    @if (page == CurrentPage)
+                    {
+                        <span class="pagination__link pagination__link--active" aria-current="page">@(page)</span>
+                    }
+                    else
+                    {
+                        <a href="@GetPageUrl(page)" 
+                           class="pagination__link"
+                           aria-label="Go to page @(page)">
+                            @(page)
+                        </a>
+                    }
+                </li>
+            }
+        }
+        
+        @* Next button *@
+        <li class="pagination__item">
+            @if (CurrentPage < TotalPages)
+            {
+                <a href="@GetPageUrl(CurrentPage + 1)" 
+                   class="pagination__link pagination__link--nav"
+                   aria-label="Go to next page">
+                    Next
+                    <svg class="pagination__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </a>
+            }
+            else
+            {
+                <span class="pagination__link pagination__link--nav pagination__link--disabled" aria-disabled="true">
+                    Next
+                    <svg class="pagination__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </span>
+            }
+        </li>
+    </ul>
+</nav>
+
+@code {
+    /// <summary>
+    /// Current page number (1-indexed).
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required int CurrentPage { get; set; }
+    
+    /// <summary>
+    /// Total number of items.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required int TotalItems { get; set; }
+    
+    /// <summary>
+    /// Number of items per page.
+    /// </summary>
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+    
+    /// <summary>
+    /// Query parameter name for page number.
+    /// </summary>
+    [Parameter]
+    public string PageQueryParam { get; set; } = "page";
+    
+    /// <summary>
+    /// Base URL for pagination links (e.g., "/products"). Query params will be appended.
+    /// If null, uses current URL.
+    /// </summary>
+    [Parameter]
+    public string? BaseUrl { get; set; }
+    
+    /// <summary>
+    /// Maximum number of page buttons to show.
+    /// </summary>
+    [Parameter]
+    public int MaxVisiblePages { get; set; } = 7;
+    
+    /// <summary>
+    /// Whether to show page info (e.g., "Showing 1 to 10 of 100 items").
+    /// </summary>
+    [Parameter]
+    public bool ShowPageInfo { get; set; } = true;
+    
+    /// <summary>
+    /// Accessible label for the navigation.
+    /// </summary>
+    [Parameter]
+    public string AriaLabel { get; set; } = "Pagination";
+    
+    /// <summary>
+    /// Additional CSS classes to apply to the pagination container.
+    /// </summary>
+    [Parameter]
+    public string? Class { get; set; }
+    
+    /// <summary>
+    /// Additional HTML attributes to apply to the pagination container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    private int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
+    private int FirstItemNumber => TotalItems == 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
+    private int LastItemNumber => Math.Min(CurrentPage * PageSize, TotalItems);
+    
+    /// <summary>
+    /// Generate URL for a specific page.
+    /// </summary>
+    private string GetPageUrl(int page)
+    {
+        var baseUrl = BaseUrl ?? "";
+        var separator = baseUrl.Contains('?') ? "&" : "?";
+        return $"{baseUrl}{separator}{PageQueryParam}={page}";
+    }
+    
+    /// <summary>
+    /// Get list of visible page numbers with ellipsis (-1 represents ellipsis).
+    /// </summary>
+    private IEnumerable<int> GetVisiblePages()
+    {
+        var pages = new List<int>();
+        
+        if (TotalPages <= MaxVisiblePages)
+        {
+            // Show all pages
+            for (int i = 1; i <= TotalPages; i++)
+            {
+                pages.Add(i);
+            }
+        }
+        else
+        {
+            // Always show first page
+            pages.Add(1);
+            
+            // Calculate range around current page
+            var rangeStart = Math.Max(2, CurrentPage - 2);
+            var rangeEnd = Math.Min(TotalPages - 1, CurrentPage + 2);
+            
+            // Add ellipsis after first page if needed
+            if (rangeStart > 2)
+            {
+                pages.Add(-1); // Ellipsis
+            }
+            
+            // Add range around current page
+            for (int i = rangeStart; i <= rangeEnd; i++)
+            {
+                pages.Add(i);
+            }
+            
+            // Add ellipsis before last page if needed
+            if (rangeEnd < TotalPages - 1)
+            {
+                pages.Add(-1); // Ellipsis
+            }
+            
+            // Always show last page
+            pages.Add(TotalPages);
+        }
+        
+        return pages;
+    }
+}
