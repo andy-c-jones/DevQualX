@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         // Register application services (IDD pattern - transient or scoped)
-        services.AddScoped<GetWeatherForecast>();
+        services.AddScoped<IGetWeatherForecast, GetWeatherForecast>();
 
         return services;
     }

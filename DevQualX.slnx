@@ -5,6 +5,14 @@
         <Project Path="src/DevQualX.Domain/DevQualX.Domain.csproj" />
         <Project Path="src/DevQualX.Infrastructure/DevQualX.Infrastructure.csproj" />
     </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/DevQualX.Domain.Tests/DevQualX.Domain.Tests.csproj" />
+        <Project Path="tests/DevQualX.Application.Tests/DevQualX.Application.Tests.csproj" />
+        <Project Path="tests/DevQualX.Data.Tests/DevQualX.Data.Tests.csproj" />
+        <Project Path="tests/DevQualX.Infrastructure.Tests/DevQualX.Infrastructure.Tests.csproj" />
+        <Project Path="tests/DevQualX.ApiService.Tests/DevQualX.ApiService.Tests.csproj" />
+        <Project Path="tests/DevQualX.Web.Tests/DevQualX.Web.Tests.csproj" />
+    </Folder>
     <Project Path="src/DevQualX.ApiService/DevQualX.ApiService.csproj" />
     <Project Path="src/DevQualX.AppHost/DevQualX.AppHost.csproj" />
     <Project Path="src/DevQualX.ServiceDefaults/DevQualX.ServiceDefaults.csproj" />

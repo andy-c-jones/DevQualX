@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- Web.Tests can reference Web, Application, and Domain -->
+    <!-- Test projects should not reference other test projects -->
+    
+    <!-- Allow test framework assemblies -->
+    <AllowedAssembly From="DevQualX.Web.Tests" To="TUnit" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="TUnit.*" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="bunit" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="bunit.*" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="Bunit.*" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="FakeItEasy" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="Castle.Core" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="testhost" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="EnumerableAsyncProcessor" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="AngleSharp" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="AngleSharp.*" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.Web" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.Application" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.Domain" />
+    <AllowedAssembly From="DevQualX.Web.Tests" To="DevQualX.ServiceDefaults" />
+    
+    <!-- Allow test framework namespaces -->
+    <Allowed From="DevQualX.Web.Tests.*" To="TUnit.*" />
+    <Allowed From="DevQualX.Web.Tests.*" To="Bunit.*" />
+    <Allowed From="DevQualX.Web.Tests.*" To="FakeItEasy.*" />
+    <Allowed From="DevQualX.Web.Tests.*" To="AngleSharp.*" />
+    <Allowed From="DevQualX.Web.Tests" To="DevQualX.Web" />
+    <Allowed From="DevQualX.Web.Tests.*" To="DevQualX.Web.Components.*" />
+    <Allowed From="DevQualX.Web.Tests" To="DevQualX.Application.*" />
+    <Allowed From="DevQualX.Web.Tests" To="DevQualX.Domain.*" />
+</NsDepCopConfig>

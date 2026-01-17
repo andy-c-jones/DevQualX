@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- Domain.Tests can only reference Domain -->
+    <!-- Test projects should not reference other test projects -->
+    
+    <!-- Allow test framework assemblies -->
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="TUnit" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="TUnit.*" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="FakeItEasy" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="Castle.Core" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="testhost" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="EnumerableAsyncProcessor" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="DevQualX.Domain" />
+    
+    <!-- Allow test framework namespaces -->
+    <Allowed From="DevQualX.Domain.Tests.*" To="TUnit.*" />
+    <Allowed From="DevQualX.Domain.Tests.*" To="FakeItEasy.*" />
+    <Allowed From="DevQualX.Domain.Tests.*" To="DevQualX.Domain.*" />
+</NsDepCopConfig>

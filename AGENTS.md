@@ -54,6 +54,7 @@ ApiService/Web → Application → Domain ← Data
    - Application services should **never** call other application services
    - Each application service represents a single use case or interaction
    - Application services coordinate domain services to fulfill use cases
+   - Each application service should have its own interface (e.g., `IGetWeatherForecast` for `GetWeatherForecast`)
    - Use primary constructors for dependency injection
    - Example: `GetWeatherForecast.ExecuteAsync()`
 
@@ -98,8 +99,14 @@ public class WeatherService : IWeatherService
     }
 }
 
-// Application Layer: IDD Service (DevQualX.Application/Weather/GetWeatherForecast.cs)
-public class GetWeatherForecast(IWeatherService weatherService)
+// Application Layer: IDD Service Interface (DevQualX.Application/Weather/IGetWeatherForecast.cs)
+public interface IGetWeatherForecast
+{
+    Task<WeatherForecast[]> ExecuteAsync(int maxItems = 10, CancellationToken cancellationToken = default);
+}
+
+// Application Layer: IDD Service Implementation (DevQualX.Application/Weather/GetWeatherForecast.cs)
+public class GetWeatherForecast(IWeatherService weatherService) : IGetWeatherForecast
 {
     public async Task<WeatherForecast[]> ExecuteAsync(int maxItems = 10, CancellationToken cancellationToken = default)
     {
@@ -108,7 +115,7 @@ public class GetWeatherForecast(IWeatherService weatherService)
 }
 
 // API/Web: Usage
-app.MapGet("/weatherforecast", async (GetWeatherForecast getWeatherForecast) =>
+app.MapGet("/weatherforecast", async (IGetWeatherForecast getWeatherForecast) =>
 {
     return await getWeatherForecast.ExecuteAsync(maxItems: 5);
 });
@@ -118,8 +125,15 @@ app.MapGet("/weatherforecast", async (GetWeatherForecast getWeatherForecast) =>
 
 ```csharp
 // In Program.cs for both ApiService and Web
-builder.Services.AddApplicationServices();  // Registers application services (scoped)
+builder.Services.AddApplicationServices();  // Registers application services (scoped) with their interfaces
 builder.Services.AddDomainServices();       // Registers domain services
+
+// In ServiceCollectionExtensions.cs
+public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+{
+    services.AddScoped<IGetWeatherForecast, GetWeatherForecast>();
+    return services;
+}
 ```
 
 ### Architecture Enforcement with NsDepCop
@@ -384,6 +398,330 @@ builder.Services.AddHttpClient<WeatherApiClient>(client =>
 - Use comments to explain "why", not "what"
 - Include links to documentation where helpful
 
+## Testing
+
+DevQualX uses **TUnit 0.6.0** as the primary testing framework with **FakeItEasy 8.3.0** for mocking. The test infrastructure follows clean architecture principles with dedicated test projects for each layer.
+
+### Test Project Structure
+
+```
+tests/
+├── DevQualX.Domain.Tests/         # Unit tests for domain layer
+├── DevQualX.Application.Tests/    # Unit tests for application services (IDD)
+├── DevQualX.Data.Tests/           # Integration tests with SQL Server
+├── DevQualX.Infrastructure.Tests/ # Unit tests for third-party adapters
+├── DevQualX.ApiService.Tests/     # Unit + minimal service tests for API
+└── DevQualX.Web.Tests/            # bUnit tests for Blazor components
+```
+
+### Testing Framework: TUnit
+
+TUnit is a modern .NET testing framework with excellent performance and native async support.
+
+**Test Structure:**
+- **Test files**: Named `[TypeUnderTest]Should.cs` (e.g., `WeatherServiceShould.cs`)
+- **Test methods**: Start with verbs describing behavior (e.g., `Return_requested_number_of_forecasts`)
+- **NO** "Test" suffix in method names
+- Use `[Test]` attribute on test methods
+- Use `await Assert.That(value).Condition()` for assertions
+
+**Example Unit Test:**
+```csharp
+public class WeatherServiceShould
+{
+    [Test]
+    public async Task Return_requested_number_of_forecasts()
+    {
+        // Arrange
+        var service = new WeatherService();
+        const int expectedCount = 5;
+
+        // Act
+        var result = await service.GetForecastAsync(expectedCount);
+
+        // Assert
+        await Assert.That(result).HasCount().EqualTo(expectedCount);
+    }
+}
+```
+
+### Mocking: FakeItEasy
+
+Use **FakeItEasy** for mocking dependencies in unit tests. FakeItEasy provides a fluent, readable API.
+
+**Common Patterns:**
+```csharp
+// Create a fake
+var fakeService = A.Fake<IWeatherService>();
+
+// Configure return value
+A.CallTo(() => fakeService.GetForecastAsync(A<int>._, A<CancellationToken>._))
+    .Returns(expectedData);
+
+// Verify method was called
+A.CallTo(() => fakeService.GetForecastAsync(5, A<CancellationToken>._))
+    .MustHaveHappenedOnceExactly();
+```
+
+**Important**: Only interfaces and virtual/abstract members can be faked. Mock at boundaries (e.g., mock `IWeatherService`, not concrete `WeatherService`).
+
+### Test Types
+
+**1. Unit Tests** (Domain, Application, Infrastructure)
+- Test single components in isolation
+- Mock all dependencies using FakeItEasy
+- Fast execution, run frequently
+- Located in: `DevQualX.Domain.Tests`, `DevQualX.Application.Tests`, `DevQualX.Infrastructure.Tests`
+
+**Example:**
+```csharp
+public class GetWeatherForecastShould
+{
+    [Test]
+    public async Task Call_weather_service_with_correct_parameters()
+    {
+        // Arrange
+        var fakeWeatherService = A.Fake<IWeatherService>();
+        var expectedData = new[] { /* test data */ };
+        A.CallTo(() => fakeWeatherService.GetForecastAsync(A<int>._, A<CancellationToken>._))
+            .Returns(expectedData);
+        var service = new GetWeatherForecast(fakeWeatherService);
+        
+        // Act
+        var result = await service.ExecuteAsync(maxItems: 5);
+        
+        // Assert
+        await Assert.That(result).IsEqualTo(expectedData);
+        A.CallTo(() => fakeWeatherService.GetForecastAsync(5, A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+}
+```
+
+**2. Service Tests** (ApiService, Web - MINIMAL USE ONLY)
+- Test HTTP pipeline with real dependency injection using `WebApplicationFactory<Program>`
+- Validate DI configuration and endpoint routing
+- **Much slower than unit tests** - use sparingly (only for happy path DI validation)
+- Called "service tests" not "integration tests" (no external processes like databases)
+- Located in: `DevQualX.ApiService.Tests`, `DevQualX.Web.Tests`
+
+**Example:**
+```csharp
+public class WeatherEndpointServiceShould : IAsyncDisposable
+{
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly HttpClient _client;
+
+    public WeatherEndpointServiceShould()
+    {
+        _factory = new WebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+    }
+
+    [Test]
+    public async Task Return_success_status_code()
+    {
+        var response = await _client.GetAsync("/weatherforecast");
+        await Assert.That(response.IsSuccessStatusCode).IsTrue();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _client.Dispose();
+        await _factory.DisposeAsync();
+    }
+}
+```
+
+**Important**: For `WebApplicationFactory` to work, the API/Web project's `Program.cs` must expose the `Program` class:
+```csharp
+// At the end of Program.cs
+public partial class Program { }
+```
+
+**3. Integration Tests** (Data Layer)
+- Test against **real SQL Server database**
+- **NO mocking** - use real database connections
+- Use Dapper for data access in tests
+- Use transactions for test isolation
+- Located in: `DevQualX.Data.Tests`
+
+**Example:**
+```csharp
+public class WeatherRepositoryShould
+{
+    [Test]
+    public async Task Insert_and_retrieve_weather_forecast()
+    {
+        // Arrange
+        using var connection = new SqlConnection(connectionString);
+        await connection.OpenAsync();
+        using var transaction = connection.BeginTransaction();
+        var repository = new WeatherRepository(connection);
+        
+        var forecast = new WeatherForecast(DateOnly.FromDateTime(DateTime.Now), 20, "Mild");
+        
+        // Act
+        await repository.InsertAsync(forecast);
+        var result = await repository.GetByDateAsync(forecast.Date);
+        
+        // Assert
+        await Assert.That(result).IsNotNull();
+        await Assert.That(result.TemperatureC).IsEqualTo(20);
+        
+        // Cleanup
+        transaction.Rollback();
+    }
+}
+```
+
+### Blazor Component Testing: bUnit
+
+Use **bUnit 1.35.3** for testing Blazor components.
+
+**Key Points:**
+- Extend `Bunit.TestContext` (NOT `TUnit.Core.TestContext`)
+- Use `RenderComponent<T>()` to render components
+- Mock injected services with FakeItEasy
+- Use `Services.AddSingleton()` to register test dependencies
+
+**Example:**
+```csharp
+using Bunit;
+using Microsoft.Extensions.DependencyInjection;
+
+public class WeatherPageShould : Bunit.TestContext
+{
+    [Test]
+    public void Display_loading_message_initially()
+    {
+        // Arrange
+        var fakeWeatherService = A.Fake<IWeatherService>();
+        Services.AddSingleton(fakeWeatherService);
+        Services.AddSingleton<GetWeatherForecast>();
+
+        // Act
+        var cut = RenderComponent<Weather>();
+
+        // Assert
+        cut.MarkupMatches("<h1>Weather</h1><p><em>Loading...</em></p>");
+    }
+
+    [Test]
+    public async Task Display_weather_forecasts_after_loading()
+    {
+        // Arrange
+        var fakeWeatherService = A.Fake<IWeatherService>();
+        var testData = new[] { /* test forecasts */ };
+        A.CallTo(() => fakeWeatherService.GetForecastAsync(A<int>._, A<CancellationToken>._))
+            .Returns(testData);
+        
+        Services.AddSingleton(fakeWeatherService);
+        Services.AddSingleton<GetWeatherForecast>();
+
+        // Act
+        var cut = RenderComponent<Weather>();
+        await Task.Delay(600); // Wait for component async operations
+        
+        // Assert
+        var tableRows = cut.FindAll("tbody tr");
+        await Assert.That(tableRows.Count).IsEqualTo(2);
+    }
+}
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+dotnet test
+
+# Run tests in specific project
+dotnet test tests/DevQualX.Domain.Tests/DevQualX.Domain.Tests.csproj
+
+# Run tests matching a name pattern
+dotnet test --filter "FullyQualifiedName~WeatherForecast"
+
+# Run a specific test
+dotnet test --filter "FullyQualifiedName=DevQualX.Domain.Tests.Services.WeatherServiceShould.Return_requested_number_of_forecasts"
+
+# Run with detailed output
+dotnet test --logger "console;verbosity=detailed"
+
+# Build and test
+dotnet build DevQualX.slnx && dotnet test DevQualX.slnx
+```
+
+### Test Project Dependencies (NsDepCop Rules)
+
+Test projects have strict architectural boundaries enforced by NsDepCop:
+
+- Test projects can **ONLY** reference:
+  - The project they test (and its transitive dependencies)
+  - Test framework assemblies (TUnit, FakeItEasy, bUnit, etc.)
+- Test projects **CANNOT** reference other test projects
+- All test projects have `TreatWarningsAsErrors="true"` - fix warnings immediately
+
+**Example `config.nsdepcop` for Domain.Tests:**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- Domain.Tests can only reference Domain -->
+    <!-- Test projects should not reference other test projects -->
+    
+    <!-- Allow test framework assemblies -->
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="TUnit" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="TUnit.*" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="FakeItEasy" />
+    <AllowedAssembly From="DevQualX.Domain.Tests" To="DevQualX.Domain" />
+    
+    <!-- Allow test framework namespaces -->
+    <Allowed From="DevQualX.Domain.Tests.*" To="TUnit.*" />
+    <Allowed From="DevQualX.Domain.Tests.*" To="FakeItEasy.*" />
+    <Allowed From="DevQualX.Domain.Tests.*" To="DevQualX.Domain.*" />
+</NsDepCopConfig>
+```
+
+### Testing Guidelines
+
+1. **Prefer unit tests over service tests**: Unit tests are faster and more focused
+2. **Use service tests sparingly**: Only for validating DI configuration (happy path only)
+3. **Data tests are integration tests**: Test against real SQL Server, no mocking
+4. **Test naming conventions**:
+   - Files: `[TypeUnderTest]Should.cs`
+   - Methods: Start with verbs, use underscores (e.g., `Return_requested_number_of_forecasts`)
+5. **Always use async/await**: TUnit has native async support, use `await Assert.That()`
+6. **Mock at boundaries**: Mock interfaces (e.g., `IWeatherService`), not concrete classes
+7. **One assertion focus per test**: Keep tests focused on single behaviors
+8. **Arrange-Act-Assert**: Follow AAA pattern consistently
+9. **Test isolation**: Each test should be independent and not rely on other tests
+10. **Avoid testing framework code**: Don't test ASP.NET Core, Entity Framework, or other framework behavior
+
+### Test Project Configuration
+
+All test projects should include these settings in their `.csproj`:
+
+```xml
+<PropertyGroup>
+  <TargetFramework>net10.0</TargetFramework>
+  <ImplicitUsings>enable</ImplicitUsings>
+  <Nullable>enable</Nullable>
+  <IsPackable>false</IsPackable>
+  <IsTestProject>true</IsTestProject>
+  <GenerateProgramFile>false</GenerateProgramFile>
+</PropertyGroup>
+```
+
+**Key packages** (versions as of January 2026):
+- TUnit: 0.6.0
+- TUnit.Assertions: 0.6.0
+- FakeItEasy: 8.3.0
+- FakeItEasy.Analyzer.CSharp: 6.1.1
+- bUnit: 1.35.3 (Web.Tests only)
+- Microsoft.AspNetCore.Mvc.Testing: 10.0.1 (ApiService.Tests only)
+- Dapper: 2.1.35 (Data.Tests only)
+- Microsoft.Data.SqlClient: 5.2.2 (Data.Tests only)
+
 ## Aspire-Specific Guidelines
 
 ### Service Configuration
@@ -427,12 +765,11 @@ return forecasts?.ToArray() ?? [];
 ## Important Notes for Agents
 
 1. **Always run from solution root**: Commands should be executed from `/home/aj/Projects/DevQualX`
-2. **No tests yet**: Test projects don't exist yet; agents should create them when needed
-3. **Use Aspire patterns**: Follow .NET Aspire conventions for service communication and configuration
-4. **Implicit usings**: Common namespaces are imported automatically; check project files for details
-5. **Primary constructors**: Prefer primary constructors for simple dependency injection
-6. **Modern C#**: Use latest C# features (records, pattern matching, collection expressions, etc.)
-7. **Health checks**: Always available at `/health` and `/alive` endpoints in development
+2. **Use Aspire patterns**: Follow .NET Aspire conventions for service communication and configuration
+3. **Implicit usings**: Common namespaces are imported automatically; check project files for details
+4. **Primary constructors**: Prefer primary constructors for simple dependency injection
+5. **Modern C#**: Use latest C# features (records, pattern matching, collection expressions, etc.)
+6. **Health checks**: Always available at `/health` and `/alive` endpoints in development
 
 ## References
 

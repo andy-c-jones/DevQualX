@@ -7,7 +7,7 @@ namespace DevQualX.Application.Weather;
 /// Application service for retrieving weather forecast data.
 /// Follows Interaction-Driven Design (IDD) - application services should never call other application services.
 /// </summary>
-public class GetWeatherForecast(IWeatherService weatherService)
+public class GetWeatherForecast(IWeatherService weatherService) : IGetWeatherForecast
 {
     /// <summary>
     /// Executes the weather forecast retrieval.

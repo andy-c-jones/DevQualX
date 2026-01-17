@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- Data.Tests can only reference Data and Domain -->
+    <!-- This is an integration test project (NO FakeItEasy - tests against real SQL Server) -->
+    <!-- Test projects should not reference other test projects -->
+    
+    <!-- Allow test framework assemblies -->
+    <AllowedAssembly From="DevQualX.Data.Tests" To="TUnit" />
+    <AllowedAssembly From="DevQualX.Data.Tests" To="TUnit.*" />
+    <AllowedAssembly From="DevQualX.Data.Tests" To="Dapper" />
+    <AllowedAssembly From="DevQualX.Data.Tests" To="Azure.*" />
+    <AllowedAssembly From="DevQualX.Data.Tests" To="testhost" />
+    <AllowedAssembly From="DevQualX.Data.Tests" To="EnumerableAsyncProcessor" />
+    <AllowedAssembly From="DevQualX.Data.Tests" To="DevQualX.Data" />
+    <AllowedAssembly From="DevQualX.Data.Tests" To="DevQualX.Domain" />
+    
+    <!-- Allow test framework namespaces -->
+    <Allowed From="DevQualX.Data.Tests.*" To="TUnit.*" />
+    <Allowed From="DevQualX.Data.Tests.*" To="Dapper.*" />
+    <Allowed From="DevQualX.Data.Tests.*" To="Microsoft.Data.*" />
+    <Allowed From="DevQualX.Data.Tests.*" To="DevQualX.Data.*" />
+    <Allowed From="DevQualX.Data.Tests.*" To="DevQualX.Domain.*" />
+</NsDepCopConfig>

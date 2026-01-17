@@ -28,7 +28,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/", () => "API service is running. Navigate to /weatherforecast to see sample data.");
 
-app.MapGet("/weatherforecast", async (GetWeatherForecast getWeatherForecast) =>
+app.MapGet("/weatherforecast", async (IGetWeatherForecast getWeatherForecast) =>
 {
     return await getWeatherForecast.ExecuteAsync(maxItems: 5);
 })
@@ -37,3 +37,6 @@ app.MapGet("/weatherforecast", async (GetWeatherForecast getWeatherForecast) =>
 app.MapDefaultEndpoints();
 
 app.Run();
+
+// Make Program class accessible to tests
+public partial class Program { }

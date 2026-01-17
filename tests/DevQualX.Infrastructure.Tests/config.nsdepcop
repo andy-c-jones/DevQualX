@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NsDepCopConfig InheritanceDepth="2">
+    <!-- Infrastructure.Tests can only reference Infrastructure and Domain -->
+    <!-- Test projects should not reference other test projects -->
+    
+    <!-- Allow test framework assemblies -->
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="TUnit" />
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="TUnit.*" />
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="FakeItEasy" />
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="Castle.Core" />
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="testhost" />
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="EnumerableAsyncProcessor" />
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="DevQualX.Infrastructure" />
+    <AllowedAssembly From="DevQualX.Infrastructure.Tests" To="DevQualX.Domain" />
+    
+    <!-- Allow test framework namespaces -->
+    <Allowed From="DevQualX.Infrastructure.Tests.*" To="TUnit.*" />
+    <Allowed From="DevQualX.Infrastructure.Tests.*" To="FakeItEasy.*" />
+    <Allowed From="DevQualX.Infrastructure.Tests.*" To="DevQualX.Infrastructure.*" />
+    <Allowed From="DevQualX.Infrastructure.Tests.*" To="DevQualX.Domain.*" />
+</NsDepCopConfig>
