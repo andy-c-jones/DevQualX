@@ -5,6 +5,7 @@ using DevQualX.Functional;
 using DevQualX.Web.Components.Pages;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
+using FunctionalError = DevQualX.Functional.Error;
 
 namespace DevQualX.Web.Tests;
 
@@ -41,9 +42,9 @@ public class WeatherPageShould : Bunit.TestContext
         };
         
         // Return a Success Result
-        Result<WeatherForecast[], Error> successResult = testForecasts;
+        Result<WeatherForecast[], FunctionalError> successResult = testForecasts;
         A.CallTo(() => fakeWeatherService.GetForecastAsync(A<int>._, A<CancellationToken>._))
-            .Returns(Task.FromResult(successResult));
+            .Returns(successResult);
 
         Services.AddSingleton(fakeWeatherService);
         Services.AddSingleton<IGetWeatherForecast, GetWeatherForecast>();
